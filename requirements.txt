@@ -5,3 +5,4 @@ langchain_groq==1.1.2
 langchain_huggingface==1.2.2
 langchain_text_splitters==1.1.2
 python-dotenv==1.2.2
+pymupdf
