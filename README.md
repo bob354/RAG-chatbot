@@ -53,21 +53,20 @@ git clone <your-repo-url>
 cd prj-chatbot-rag
 ```
 
-### 2. Create a virtual environment (recommended)
+## Setup
 
+### Option 1: venv (recommended)
 ```bash
-# Windows
 python -m venv venv
-venv\Scripts\activate
-
-# macOS / Linux
-python3 -m venv venv
-source venv/bin/activate
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # macOS/Linux
+pip install -r requirements.txt
 ```
 
-### 3. Install dependencies
-
+### Option 2: conda (if you have Anaconda)
 ```bash
+conda create -n rag_chatbot python=3.10 -y
+conda activate rag_chatbot
 pip install -r requirements.txt
 ```
 
