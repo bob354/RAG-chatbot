@@ -1,10 +1,10 @@
-# 📚 RAG Knowledge Assistant
+# RAG Knowledge Assistant
 
 A Retrieval-Augmented Generation (RAG) chatbot that answers questions based on your PDF documents. Built with **LangChain**, **FAISS**, **Groq (LLaMA 3.1)**, and **Flask**.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 User Question
@@ -36,7 +36,7 @@ User Question
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 - **Python 3.10+**
 - **A Groq API key** — get one for free at [console.groq.com](https://console.groq.com/)
@@ -44,7 +44,7 @@ User Question
 
 ---
 
-## 🚀 Setup Guide
+## Setup Guide
 
 ### 1. Clone the repository
 
@@ -129,7 +129,7 @@ Open this URL in your browser to start chatting!
 
 ---
 
-## 💬 Usage
+## Usage
 
 ### Web Interface
 
@@ -168,7 +168,7 @@ curl -X POST http://localhost:5000/api/chat \
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 prj-chatbot-rag/
@@ -184,7 +184,7 @@ prj-chatbot-rag/
 
 ---
 
-## ⚙️ Configuration & Tuning
+## Configuration & Tuning
 
 ### Chunk Size & Overlap
 
@@ -227,7 +227,7 @@ Update `HUGGINGFACE_EMBEDDING_MODEL` in `.env`:
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 | Issue                                  | Solution                                                                                     |
 | -------------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -240,6 +240,6 @@ Update `HUGGINGFACE_EMBEDDING_MODEL` in `.env`:
 
 ---
 
-## 📄 License
+## License
 
 This project is for educational purposes.
