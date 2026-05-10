@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, TextLoader, CSVLoader, PyMuPDFLoader
+from langchain_community.document_loaders import DirectoryLoader, PDFPlumberLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -19,7 +19,7 @@ load_dotenv()
 loader = DirectoryLoader(
     path = "documents", 
     glob="*.pdf",
-    loader_cls=PyMuPDFLoader,
+    loader_cls=PDFPlumberLoader,
     show_progress=True,
     use_multithreading=True
     )
@@ -39,7 +39,7 @@ MARKDOWN_SEPARATORS = [
 ]
 
 text_splitter = RecursiveCharacterTextSplitter(
-    separators=MARKDOWN_SEPARATORS,
+    separators=["\n\n", "\n", ". ", " ", ""],
     chunk_size=1200,
     chunk_overlap=200,
     add_start_index=True,

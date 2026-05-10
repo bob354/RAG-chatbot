@@ -105,9 +105,9 @@ GROQ_MODEL="llama-3.1-8b-instant"
 
 ### 5. Add your PDF documents
 
-Place your PDF files inside the `documents/` folder:
+Create a `documents` folder in the project root and place your PDF files inside it:
 
-```
+```text
 documents/
 ├── your-file-1.pdf
 ├── your-file-2.pdf
