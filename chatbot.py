@@ -16,51 +16,62 @@ from langchain_groq import ChatGroq
 load_dotenv()
 
 
-loader = DirectoryLoader(
-    path = "documents", 
-    glob="*.pdf",
-    loader_cls=PDFPlumberLoader,
-    show_progress=True,
-    use_multithreading=True
+def get_vector_store():
+    embedding_model_name = os.getenv("HUGGINGFACE_EMBEDDING_MODEL")
+    if not embedding_model_name:
+        raise ValueError("HUGGINGFACE_EMBEDDING_MODEL environment variable is missing in .env.")
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name=embedding_model_name,
+        model_kwargs={"trust_remote_code": True},
+        encode_kwargs={"normalize_embeddings": True}
     )
 
-docs = loader.load()
+    index_path = "vector_db"
+    force_reindex = os.getenv("FORCE_REINDEX", "false").lower() == "true"
 
-MARKDOWN_SEPARATORS = [
-    "\n#{1,6} ",
-    "```\n",
-    "\n\\*\\*\\*+\n",
-    "\n---+\n",
-    "\n___+\n",
-    "\n\n",
-    "\n",
-    " ",
-    "",
-]
+    if os.path.exists(index_path) and not force_reindex:
+        print("Loading existing FAISS index from disk...")
+        return FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
 
-text_splitter = RecursiveCharacterTextSplitter(
-    separators=["\n\n", "\n", ". ", " ", ""],
-    chunk_size=1200,
-    chunk_overlap=200,
-    add_start_index=True,
-    strip_whitespace=True
-)
+    print("Building new FAISS index...")
+    documents_dir = "documents"
+    if not os.path.exists(documents_dir) or not os.listdir(documents_dir):
+        raise ValueError(f"The '{documents_dir}' folder is empty or does not exist. Please add PDF files.")
 
-split_docs = text_splitter.split_documents(docs)
+    loader = DirectoryLoader(
+        path=documents_dir, 
+        glob="*.pdf",
+        loader_cls=PDFPlumberLoader,
+        show_progress=True,
+        use_multithreading=True
+    )
+    
+    docs = loader.load()
+    if not docs:
+        raise ValueError("No documents loaded. Ensure there are readable PDFs in the 'documents' folder.")
 
-# print(split_docs)
+    text_splitter = RecursiveCharacterTextSplitter(
+        separators=["\n\n", "\n", ". ", " ", ""],
+        chunk_size=1200,
+        chunk_overlap=200,
+        add_start_index=True,
+        strip_whitespace=True
+    )
+    
+    split_docs = text_splitter.split_documents(docs)
 
-embeddings = HuggingFaceEmbeddings(
-    model_name=os.getenv("HUGGINGFACE_EMBEDDING_MODEL"),
-    model_kwargs={"trust_remote_code": True},
-    encode_kwargs={"normalize_embeddings": True}
-)
+    vector_store = FAISS.from_documents(
+        documents=split_docs, 
+        embedding=embeddings,
+        distance_strategy=DistanceStrategy.COSINE
+    )
+    
+    vector_store.save_local(index_path)
+    print(f"Index successfully saved to {index_path}.")
+    return vector_store
 
-vector_store = FAISS.from_documents(
-    documents=split_docs, 
-    embedding=embeddings,
-    distance_strategy=DistanceStrategy.COSINE
-)
+vector_store = get_vector_store()
 
 retriever = vector_store.as_retriever(
     search_type="similarity",
@@ -91,9 +102,15 @@ prompt = ChatPromptTemplate.from_template(template)
 #     # task="text-generation",
 # )
 
+groq_api_key = os.getenv("GROQ_API_KEY")
+groq_model = os.getenv("GROQ_MODEL")
+
+if not groq_api_key or not groq_model:
+    raise ValueError("GROQ_API_KEY and GROQ_MODEL environment variables must be set in .env.")
+
 llm = ChatGroq(
-    model=os.getenv("GROQ_MODEL"),
-    api_key=os.getenv("GROQ_API_KEY"),
+    model=groq_model,
+    api_key=groq_api_key,
     temperature=0
 )
 
