@@ -75,11 +75,9 @@ def get_vector_store():
 vector_store = get_vector_store()
 
 base_retriever = vector_store.as_retriever(
-    search_type="mmr",
+    search_type="similarity",
     search_kwargs={
-        "k": 15,
-        "fetch_k": 30,
-        "lambda_mult": 0.5
+        "k": 15
     }
 )
 
@@ -88,7 +86,7 @@ RERANK_TOP_N = 5
 
 
 def rerank_docs(query: str):
-    """Retrieve documents via MMR, then rerank with a cross-encoder and return top N."""
+    """Retrieve documents, then rerank with a cross-encoder and return top N."""
     docs = base_retriever.invoke(query)
     if not docs:
         return []
@@ -162,4 +160,3 @@ if __name__ == "__main__":
     question = input("Question: ")
     response = chat(question)
     print(response)
-
