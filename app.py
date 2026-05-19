@@ -1,14 +1,12 @@
 from flask import Flask, render_template, request, jsonify
-from chatbot import chat
+from chatbot_sim_only import chat
 import time
 
 app = Flask(__name__)
 
-
 @app.route("/")
 def index():
     return render_template("index.html")
-
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
@@ -22,11 +20,10 @@ def api_chat():
         start_time = time.time()
         answer = chat(question)
         elapsed_time = time.time() - start_time
-        print(f"Elapsed time (MMR): {elapsed_time:.2f} seconds")
+        print(f"Elapsed time (Sim Only): {elapsed_time:.2f} seconds")
         return jsonify({"answer": answer, "elapsed_seconds": elapsed_time})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=5000)
+    app.run(debug=False, host="0.0.0.0", port=5002)

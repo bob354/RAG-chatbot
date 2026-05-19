@@ -6,16 +6,11 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.vectorstores.utils import DistanceStrategy
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_huggingface import HuggingFaceEndpoint
-# from langchain.chains.combine_documents import create_stuff_documents_chain
-# from langchain.chains import create_retrieval_chain
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_groq import ChatGroq
-from sentence_transformers import CrossEncoder
 
 load_dotenv()
-
 
 def get_vector_store():
     embedding_model_name = os.getenv("HUGGINGFACE_EMBEDDING_MODEL")
@@ -75,27 +70,16 @@ def get_vector_store():
 vector_store = get_vector_store()
 
 base_retriever = vector_store.as_retriever(
-    search_type="mmr",
+    search_type="similarity",
     search_kwargs={
-        "k": 15,
-        "fetch_k": 30,
-        "lambda_mult": 0.5
+        "k": 5
     }
 )
 
-reranker = CrossEncoder("BAAI/bge-reranker-base")
-RERANK_TOP_N = 5
-
-
-def rerank_docs(query: str):
-    """Retrieve documents via MMR, then rerank with a cross-encoder and return top N."""
+def retrieve_docs(query: str):
+    """Retrieve documents using similarity search."""
     docs = base_retriever.invoke(query)
-    if not docs:
-        return []
-    pairs = [[query, doc.page_content] for doc in docs]
-    scores = reranker.predict(pairs)
-    scored_docs = sorted(zip(scores, docs), key=lambda x: x[0], reverse=True)
-    return [doc for _, doc in scored_docs[:RERANK_TOP_N]]
+    return docs
 
 template = (
     "You are a strict, citation-focused assistant for a private knowledge base.\n"
@@ -111,14 +95,6 @@ template = (
 
 prompt = ChatPromptTemplate.from_template(template)
 
-# llm = HuggingFaceEndpoint(
-#     repo_id=os.getenv("HUGGINGFACE_LLM_MODEL"),
-#     huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
-#     temperature=0,
-#     # max_new_tokens=2048,
-#     # task="text-generation",
-# )
-
 groq_api_key = os.getenv("GROQ_API_KEY")
 groq_model = os.getenv("GROQ_MODEL")
 
@@ -131,7 +107,6 @@ llm = ChatGroq(
     temperature=0
 )
 
-# Build RAG chain
 def format_docs(docs):
     """Convert retrieved Document objects into readable text with source citations."""
     formatted = []
@@ -143,7 +118,7 @@ def format_docs(docs):
 
 rag_chain = (
     {
-        "context": lambda q: format_docs(rerank_docs(q)),
+        "context": lambda q: format_docs(retrieve_docs(q)),
         "question": RunnablePassthrough()
     }
     | prompt
@@ -151,15 +126,15 @@ rag_chain = (
     | StrOutputParser()
 )
 
-
 def chat(question: str) -> str:
     """Send a question to the RAG chain and return the answer."""
     response = rag_chain.invoke(question)
     return response
 
-
 if __name__ == "__main__":
+    import time
     question = input("Question: ")
+    start_time = time.time()
     response = chat(question)
+    print(f"Elapsed time (Sim Only): {time.time() - start_time:.2f} seconds")
     print(response)
-
