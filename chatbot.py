@@ -12,6 +12,7 @@ from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_groq import ChatGroq
+from sentence_transformers import CrossEncoder
 
 load_dotenv()
 
@@ -53,8 +54,8 @@ def get_vector_store():
 
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n", ". ", " ", ""],
-        chunk_size=1200,
-        chunk_overlap=200,
+        chunk_size=700,
+        chunk_overlap=100,
         add_start_index=True,
         strip_whitespace=True
     )
@@ -73,12 +74,28 @@ def get_vector_store():
 
 vector_store = get_vector_store()
 
-retriever = vector_store.as_retriever(
-    search_type="similarity",
+base_retriever = vector_store.as_retriever(
+    search_type="mmr",
     search_kwargs={
-        "k": 5,  # number of documents to retrieve
+        "k": 15,
+        "fetch_k": 30,
+        "lambda_mult": 0.5
     }
 )
+
+reranker = CrossEncoder("BAAI/bge-reranker-base")
+RERANK_TOP_N = 5
+
+
+def rerank_docs(query: str):
+    """Retrieve documents via MMR, then rerank with a cross-encoder and return top N."""
+    docs = base_retriever.invoke(query)
+    if not docs:
+        return []
+    pairs = [[query, doc.page_content] for doc in docs]
+    scores = reranker.predict(pairs)
+    scored_docs = sorted(zip(scores, docs), key=lambda x: x[0], reverse=True)
+    return [doc for _, doc in scored_docs[:RERANK_TOP_N]]
 
 template = (
     "You are a strict, citation-focused assistant for a private knowledge base.\n"
@@ -126,7 +143,7 @@ def format_docs(docs):
 
 rag_chain = (
     {
-        "context": retriever | format_docs,
+        "context": lambda q: format_docs(rerank_docs(q)),
         "question": RunnablePassthrough()
     }
     | prompt
