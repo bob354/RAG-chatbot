@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from chatbot_sim_only import chat
+from chatbot import chat
 import time
 
 app = Flask(__name__)
