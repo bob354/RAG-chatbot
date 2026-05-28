@@ -28,12 +28,22 @@ def get_vector_store():
 
     if os.path.exists(index_path) and not force_reindex:
         print("Loading existing FAISS index from disk...")
-        return FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
+        try:
+            return FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
+        except Exception as e:
+            print(f"Error loading index: {e}. Rebuilding...")
 
     print("Building new FAISS index...")
     documents_dir = "documents"
     if not os.path.exists(documents_dir) or not os.listdir(documents_dir):
-        raise ValueError(f"The '{documents_dir}' folder is empty or does not exist. Please add PDF files.")
+        print(f"The '{documents_dir}' folder is empty or does not exist. Clearing vector store index...")
+        import shutil
+        if os.path.exists(index_path):
+            try:
+                shutil.rmtree(index_path)
+            except Exception as e:
+                print(f"Error deleting index directory: {e}")
+        return None
 
     loader = DirectoryLoader(
         path=documents_dir, 
@@ -69,17 +79,52 @@ def get_vector_store():
 
 vector_store = get_vector_store()
 
-base_retriever = vector_store.as_retriever(
-    search_type="similarity",
-    search_kwargs={
-        "k": 5
-    }
-)
+if vector_store is not None:
+    base_retriever = vector_store.as_retriever(
+        search_type="similarity",
+        search_kwargs={
+            "k": 5
+        }
+    )
+else:
+    base_retriever = None
 
-def retrieve_docs(query: str):
-    """Retrieve documents using similarity search."""
-    docs = base_retriever.invoke(query)
-    return docs
+def rebuild_index():
+    global vector_store, base_retriever
+    print("Rebuilding index dynamically...")
+    os.environ["FORCE_REINDEX"] = "true"
+    vector_store = get_vector_store()
+    if vector_store is not None:
+        base_retriever = vector_store.as_retriever(
+            search_type="similarity",
+            search_kwargs={
+                "k": 5
+            }
+        )
+    else:
+        base_retriever = None
+    os.environ["FORCE_REINDEX"] = "false"
+    print("Index rebuild completed.")
+
+def retrieve_docs(query: str, active_docs: list = None):
+    """Retrieve documents using similarity search and filter by active documents."""
+    if vector_store is None:
+        return []
+    
+    if active_docs is not None:
+        docs = vector_store.similarity_search(query, k=20)
+        active_filenames = {os.path.basename(f) for f in active_docs}
+        filtered = []
+        for doc in docs:
+            doc_source = doc.metadata.get("source", "")
+            doc_filename = os.path.basename(doc_source)
+            if doc_filename in active_filenames:
+                filtered.append(doc)
+        return filtered[:5]
+    else:
+        if base_retriever is not None:
+            return base_retriever.invoke(query)
+        return []
 
 template = (
     "You are a strict, citation-focused assistant for a private knowledge base.\n"
@@ -126,9 +171,12 @@ rag_chain = (
     | StrOutputParser()
 )
 
-def chat(question: str) -> str:
+def chat(question: str, active_docs: list = None) -> str:
     """Send a question to the RAG chain and return the answer."""
-    response = rag_chain.invoke(question)
+    retrieved_docs = retrieve_docs(question, active_docs)
+    context = format_docs(retrieved_docs)
+    chain = prompt | llm | StrOutputParser()
+    response = chain.invoke({"context": context, "question": question})
     return response
 
 if __name__ == "__main__":

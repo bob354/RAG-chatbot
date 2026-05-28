@@ -16,22 +16,22 @@
         }
 
         :root {
-            --bg-primary: #0f0f14;
-            --bg-secondary: #1a1a24;
-            --bg-tertiary: #24243a;
-            --surface: #1e1e2e;
-            --surface-hover: #2a2a3e;
-            --accent: #7c5bf5;
-            --accent-glow: rgba(124, 91, 245, 0.25);
-            --accent-light: #a78bfa;
-            --text-primary: #e8e6f0;
-            --text-secondary: #9994b8;
-            --text-muted: #6b6588;
-            --border: rgba(124, 91, 245, 0.15);
-            --user-bubble: linear-gradient(135deg, #7c5bf5, #6341d4);
-            --bot-bubble: #1e1e2e;
-            --error: #f5465b;
-            --success: #22c55e;
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d2d;
+            --surface: #2d2d2d;
+            --surface-hover: #37373d;
+            --accent: #007acc;
+            --accent-glow: rgba(0, 122, 204, 0.25);
+            --accent-light: #4fc1ff;
+            --text-primary: #e0e0e0;
+            --text-secondary: #cccccc;
+            --text-muted: #858585;
+            --border: rgba(255, 255, 255, 0.08);
+            --user-bubble: linear-gradient(135deg, #007acc, #005a9e);
+            --bot-bubble: #2d2d2d;
+            --error: #f14c4c;
+            --success: #89d185;
         }
 
         body {
@@ -39,9 +39,367 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Layout Wrapper ── */
+        .app-layout {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar (Sources Panel) ── */
+        .sidebar {
+            width: 330px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(4px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 20;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .overlay-text {
+            font-size: 13px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar-toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .sidebar-toggle-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .add-source-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 20px 10px;
+            padding: 12px;
+            background: transparent;
+            border: 1px dashed var(--accent);
+            border-radius: 24px;
+            color: var(--accent-light);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .add-source-btn:hover {
+            background: var(--accent-glow);
+            border-color: var(--accent-light);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        /* ── Web Search Mock Panel ── */
+        .web-search-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin: 10px 20px 20px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .web-search-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .web-search-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .web-dropdown-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 6px 12px;
+            color: var(--text-primary);
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: inherit;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .web-dropdown-btn:hover {
+            background: var(--surface-hover);
+        }
+
+        .web-search-icon-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            margin-left: auto;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .web-search-icon-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .web-search-icon-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* ── Sources List Controls ── */
+        .sources-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        .select-all-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .refresh-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            color: var(--accent-light);
+            background: var(--surface-hover);
+            transform: rotate(30deg);
+        }
+
+        .select-all-inner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-all-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+        }
+
+        .sources-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sources-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sources-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .source-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            animation: itemIn 0.3s ease;
+        }
+
+        .source-item:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+        }
+
+        .source-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .source-item-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .source-item-details {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .source-item-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .source-item-size {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .source-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 8px;
+        }
+
+        .delete-doc-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .source-item:hover .delete-doc-btn {
+            opacity: 1;
+        }
+
+        .delete-doc-btn:hover {
+            color: var(--error);
+            background: rgba(245, 70, 91, 0.1);
+        }
+
+        /* ── Main Chat Area ── */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-primary);
         }
 
         /* ── Header ── */
@@ -54,6 +412,11 @@
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(12px);
             flex-shrink: 0;
+        }
+
+        #sidebar-open-btn {
+            display: none;
+            margin-right: 4px;
         }
 
         .header-icon {
@@ -91,18 +454,11 @@
         }
 
         @keyframes pulse-dot {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.4;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
-        /* ── Chat area ── */
+        /* ── Chat Container ── */
         .chat-container {
             flex: 1;
             overflow-y: auto;
@@ -139,7 +495,17 @@
                 opacity: 0;
                 transform: translateY(12px);
             }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
+        @keyframes itemIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -202,7 +568,7 @@
             margin-bottom: 0;
         }
 
-        /* ── Typing indicator ── */
+        /* ── Typing Indicator ── */
         .typing-indicator {
             display: flex;
             gap: 5px;
@@ -226,21 +592,17 @@
         }
 
         @keyframes typing {
-
-            0%,
-            60%,
-            100% {
+            0%, 60%, 100% {
                 transform: translateY(0);
                 opacity: 0.4;
             }
-
             30% {
                 transform: translateY(-6px);
                 opacity: 1;
             }
         }
 
-        /* ── Welcome screen ── */
+        /* ── Welcome Screen ── */
         .welcome {
             flex: 1;
             display: flex;
@@ -306,7 +668,7 @@
             transform: translateY(-1px);
         }
 
-        /* ── Input area ── */
+        /* ── Input Area ── */
         .input-area {
             padding: 16px 28px 24px;
             background: var(--bg-secondary);
@@ -392,48 +754,134 @@
             margin-top: 8px;
             font-style: italic;
         }
+
+        /* ── Animations ── */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- Header -->
-    <div class="header">
-        <div class="header-icon">📚</div>
-        <div class="header-info">
-            <h1>RAG Knowledge Assistant</h1>
-            <p><span class="status-dot"></span>Powered by LLaMA 3.1 + FAISS</p>
-        </div>
-    </div>
+    <div class="app-layout">
+        <!-- Sidebar (Sources Panel) -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-overlay" id="sidebar-overlay">
+                <div class="spinner"></div>
+                <div class="overlay-text" id="overlay-text">Updating sources...</div>
+            </div>
 
-    <!-- Chat area -->
-    <div class="chat-container" id="chat-container">
-        <div class="welcome" id="welcome-screen">
-            <div class="welcome-icon">🧠</div>
-            <h2>Ask your documents anything</h2>
-            <p>I can answer questions based on the PDFs loaded in the knowledge base. Ask me about their content!</p>
-            <div class="suggestion-chips">
-                <button class="chip" onclick="askSuggestion(this)">What documents are in the knowledge base?</button>
-                <button class="chip" onclick="askSuggestion(this)">Summarize the main ideas</button>
-                <button class="chip" onclick="askSuggestion(this)">What is the key argument?</button>
+            <div class="sidebar-header">
+                <h2>Sources</h2>
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Collapse Sources">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <button class="add-source-btn" onclick="triggerFileUpload()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add sources
+            </button>
+            <input type="file" id="file-upload-input" multiple accept=".pdf" style="display: none;" onchange="handleFileUpload(event)">
+
+            <!-- Web Search Mock Panel -->
+            <div class="web-search-card">
+                <div class="web-search-title">Search the web for new sources</div>
+                <div class="web-search-row">
+                    <button class="web-dropdown-btn" onclick="alert('Web search options: standard offline search is active')">
+                        <span style="font-size: 13px;">🌐</span> Web <span style="font-size: 8px; margin-left: 2px;">▼</span>
+                    </button>
+                    <button class="web-dropdown-btn" onclick="alert('Research speed options: Fast research is active')">
+                        <span style="font-size: 13px;">✨</span> Fast Research <span style="font-size: 8px; margin-left: 2px;">▼</span>
+                    </button>
+                    <button class="web-search-icon-btn" onclick="alert('Web search is currently simulated. Use Add Sources above to index PDFs.')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sources-list-header">
+                <div class="select-all-wrapper">
+                    <button class="refresh-btn" onclick="loadDocuments()" title="Sync Sources">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </button>
+                    <div class="select-all-inner" onclick="toggleSelectAll()">
+                        <div class="select-all-text">Select all</div>
+                        <input type="checkbox" id="select-all-checkbox" checked onclick="event.stopPropagation(); handleSelectAllClick(this)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sources-list" id="sources-list">
+                <!-- Dynamically filled with PDF sources -->
             </div>
         </div>
-    </div>
 
-    <!-- Input area -->
-    <div class="input-area">
-        <div class="input-wrapper">
-            <textarea id="question-input" placeholder="Ask a question about your documents..." rows="1"
-                onkeydown="handleKeyDown(event)"></textarea>
-            <button id="send-btn" onclick="sendMessage()" title="Send message">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </button>
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <button id="sidebar-open-btn" class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Show Sources">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                    </svg>
+                </button>
+                <div class="header-icon">📚</div>
+                <div class="header-info">
+                    <h1>RAG Knowledge Assistant</h1>
+                    <p><span class="status-dot"></span>Powered by LLaMA 3.1 + FAISS</p>
+                </div>
+            </div>
+
+            <!-- Chat area -->
+            <div class="chat-container" id="chat-container">
+                <div class="welcome" id="welcome-screen">
+                    <div class="welcome-icon">🧠</div>
+                    <h2>Ask your documents anything</h2>
+                    <p>I can answer questions based on the PDFs loaded in the knowledge base. Ask me about their content!</p>
+                    <div class="suggestion-chips">
+                        <button class="chip" onclick="askSuggestion(this)">What documents are in the knowledge base?</button>
+                        <button class="chip" onclick="askSuggestion(this)">Summarize the main ideas</button>
+                        <button class="chip" onclick="askSuggestion(this)">What is the key argument?</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea id="question-input" placeholder="Ask a question about your documents..." rows="1"
+                        onkeydown="handleKeyDown(event)"></textarea>
+                    <button id="send-btn" onclick="sendMessage()" title="Send message">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+                <div class="footer-note">Press Enter to send · Shift+Enter for new line</div>
+            </div>
         </div>
-        <div class="footer-note">Press Enter to send · Shift+Enter for new line</div>
     </div>
 
     <script>
@@ -441,6 +889,210 @@
         const questionInput = document.getElementById('question-input');
         const sendBtn = document.getElementById('send-btn');
         const welcomeScreen = document.getElementById('welcome-screen');
+        const sourcesList = document.getElementById('sources-list');
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const overlayText = document.getElementById('overlay-text');
+
+        let allDocs = [];
+        let selectedDocs = new Set();
+
+        // Load documents from backend
+        async function loadDocuments() {
+            try {
+                const res = await fetch('/api/documents');
+                const data = await res.json();
+                
+                if (data.error) {
+                    console.error("Error loading documents:", data.error);
+                    return;
+                }
+                
+                const oldDocsMap = new Set(allDocs.map(d => d.name));
+                allDocs = data.documents || [];
+                
+                // If it's the very first load, check everything.
+                // Otherwise, preserve selection for existing files, and auto-check new ones.
+                const newSelection = new Set();
+                allDocs.forEach(doc => {
+                    if (oldDocsMap.size === 0 || !oldDocsMap.has(doc.name) || selectedDocs.has(doc.name)) {
+                        newSelection.add(doc.name);
+                    }
+                });
+                selectedDocs = newSelection;
+                
+                renderDocuments();
+            } catch (err) {
+                console.error("Connection error loading documents:", err);
+            }
+        }
+
+        // Render document list items in sidebar
+        function renderDocuments() {
+            sourcesList.innerHTML = '';
+            
+            if (allDocs.length === 0) {
+                sourcesList.innerHTML = `
+                    <div style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 30px; line-height: 1.6;">
+                        No sources loaded.<br>Click "+ Add sources" to index PDFs.
+                    </div>
+                `;
+                selectAllCheckbox.checked = false;
+                return;
+            }
+            
+            allDocs.forEach(doc => {
+                const isChecked = selectedDocs.has(doc.name);
+                const sizeStr = formatBytes(doc.size);
+                
+                const item = document.createElement('div');
+                item.className = 'source-item';
+                
+                item.innerHTML = `
+                    <div class="source-item-info">
+                        <span class="source-item-icon">📕</span>
+                        <div class="source-item-details">
+                            <span class="source-item-name" title="${doc.name}">${doc.name}</span>
+                            <span class="source-item-size">${sizeStr}</span>
+                        </div>
+                    </div>
+                    <div class="source-item-actions">
+                        <button class="delete-doc-btn" onclick="deleteDocument('${doc.name}', event)" title="Delete source">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </button>
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleDocument('${doc.name}', this)">
+                    </div>
+                `;
+                sourcesList.appendChild(item);
+            });
+            
+            // Sync the select-all checkbox state
+            const allChecked = allDocs.every(doc => selectedDocs.has(doc.name));
+            selectAllCheckbox.checked = allChecked;
+        }
+
+        // Toggle individual document selection
+        function toggleDocument(name, checkbox) {
+            if (checkbox.checked) {
+                selectedDocs.add(name);
+            } else {
+                selectedDocs.delete(name);
+            }
+            // Update select all checkbox state
+            const allChecked = allDocs.every(doc => selectedDocs.has(doc.name));
+            selectAllCheckbox.checked = allChecked;
+        }
+
+        // Handle select all checkbox click
+        function handleSelectAllClick(checkbox) {
+            if (checkbox.checked) {
+                allDocs.forEach(doc => selectedDocs.add(doc.name));
+            } else {
+                selectedDocs.clear();
+            }
+            renderDocuments();
+        }
+
+        // Toggle select all from the parent wrapper
+        function toggleSelectAll() {
+            const willCheck = !selectAllCheckbox.checked;
+            selectAllCheckbox.checked = willCheck;
+            handleSelectAllClick(selectAllCheckbox);
+        }
+
+        // Format byte sizes
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // Trigger hidden input click
+        function triggerFileUpload() {
+            document.getElementById('file-upload-input').click();
+        }
+
+        // Handle file upload selection
+        async function handleFileUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('file', files[i]);
+            }
+            
+            // Show loading overlay
+            overlayText.textContent = "Uploading & Indexing...";
+            sidebarOverlay.style.display = 'flex';
+            
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                if (data.error) {
+                    alert("Upload error: " + data.error);
+                } else {
+                    // Auto-select newly uploaded files
+                    if (data.files) {
+                        data.files.forEach(f => selectedDocs.add(f));
+                    }
+                }
+            } catch (err) {
+                alert("Connection error uploading files: " + err.message);
+            } finally {
+                event.target.value = '';
+                sidebarOverlay.style.display = 'none';
+                await loadDocuments();
+            }
+        }
+
+        // Delete document source
+        async function deleteDocument(name, event) {
+            event.stopPropagation();
+            if (!confirm(`Are you sure you want to delete ${name}?`)) return;
+            
+            overlayText.textContent = "Deleting & Re-indexing...";
+            sidebarOverlay.style.display = 'flex';
+            
+            try {
+                const res = await fetch(`/api/documents/${encodeURIComponent(name)}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await res.json();
+                if (data.error) {
+                    alert("Delete error: " + data.error);
+                } else {
+                    selectedDocs.delete(name);
+                }
+            } catch (err) {
+                alert("Connection error deleting file: " + err.message);
+            } finally {
+                sidebarOverlay.style.display = 'none';
+                await loadDocuments();
+            }
+        }
+
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const openBtn = document.getElementById('sidebar-open-btn');
+            sidebar.classList.toggle('collapsed');
+            
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            openBtn.style.display = isCollapsed ? 'flex' : 'none';
+        }
 
         // Auto-resize textarea
         questionInput.addEventListener('input', () => {
@@ -461,7 +1113,6 @@
         }
 
         function addMessage(text, role, elapsedSeconds = null) {
-            // Hide welcome screen on first message
             if (welcomeScreen) {
                 welcomeScreen.style.display = 'none';
             }
@@ -476,7 +1127,6 @@
             const content = document.createElement('div');
             content.className = 'message-content';
 
-            // Convert newlines to paragraphs for bot messages
             if (role === 'bot') {
                 const paragraphs = text.split('\n').filter(p => p.trim());
                 paragraphs.forEach(p => {
@@ -537,7 +1187,6 @@
             const question = questionInput.value.trim();
             if (!question) return;
 
-            // Disable input while processing
             questionInput.value = '';
             questionInput.style.height = 'auto';
             sendBtn.disabled = true;
@@ -546,10 +1195,15 @@
             addTypingIndicator();
 
             try {
+                const active_docs = Array.from(selectedDocs);
+                
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question })
+                    body: JSON.stringify({ 
+                        question,
+                        active_docs
+                    })
                 });
 
                 const data = await res.json();
@@ -569,7 +1223,8 @@
             questionInput.focus();
         }
 
-        // Focus input on load
+        // Initialize on load
+        loadDocuments();
         questionInput.focus();
     </script>
 </body>
