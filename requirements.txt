@@ -9,3 +9,4 @@ python-dotenv==1.2.2
 pdfplumber
 sentence-transformers
 faiss-cpu
+rank_bm25
