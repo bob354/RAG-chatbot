@@ -90,7 +90,7 @@ Create a `.env` file in the project root (or edit the existing one):
 
 ```env
 # ── Embedding Model ──
-HUGGINGFACE_EMBEDDING_MODEL="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+HUGGINGFACE_EMBEDDING_MODEL="doan2506/vietnamese-bi-encoder-finetuned"
 
 # ── LLM (Groq) ──
 GROQ_API_KEY=your-groq-api-key-here

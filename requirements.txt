@@ -7,6 +7,6 @@ langchain_huggingface==1.2.2
 langchain_text_splitters==1.1.2
 python-dotenv==1.2.2
 pdfplumber
-sentence-transformers
+sentence-transformers=5.5.1
 faiss-cpu
 rank_bm25
