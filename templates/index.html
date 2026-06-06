@@ -164,7 +164,7 @@
             transform: translateY(-1px);
         }
 
-        /* ── Web Search Mock Panel ── */
+        /* ── Web Search Panel ── */
         .web-search-card {
             background: var(--bg-primary);
             border: 1px solid var(--border);
@@ -183,56 +183,237 @@
             letter-spacing: 0.2px;
         }
 
-        .web-search-row {
+        .web-search-input-row {
             display: flex;
             gap: 8px;
             align-items: center;
         }
 
-        .web-dropdown-btn {
+        .web-search-input {
+            flex: 1;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 100px;
-            padding: 6px 12px;
+            padding: 8px 14px;
             color: var(--text-primary);
-            font-size: 11px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            font-size: 12px;
             font-family: inherit;
-            font-weight: 500;
-            transition: background 0.2s;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .web-dropdown-btn:hover {
-            background: var(--surface-hover);
+        .web-search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
         }
 
-        .web-search-icon-btn {
+        .web-search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .web-search-go-btn {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-secondary);
             cursor: pointer;
-            margin-left: auto;
             transition: all 0.2s;
-            border: none;
+            flex-shrink: 0;
         }
 
-        .web-search-icon-btn:hover {
+        .web-search-go-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .web-search-go-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .web-search-go-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* ── Search Results Panel ── */
+        .web-search-results {
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .web-results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .web-results-status {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .web-results-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .web-results-close-btn:hover {
+            color: var(--text-primary);
+            background: var(--surface-hover);
+        }
+
+        .web-results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .web-results-list::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .web-results-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .web-result-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            animation: itemIn 0.3s ease;
+        }
+
+        .web-result-item:hover {
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .web-result-favicon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            background: var(--bg-tertiary);
+        }
+
+        .web-result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .web-result-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent-light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        .web-result-title:hover {
+            text-decoration: underline;
+        }
+
+        .web-result-snippet {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-top: 2px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .web-result-url {
+            font-size: 10px;
+            color: var(--text-muted);
+            opacity: 0.7;
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .web-result-import-btn {
+            background: transparent;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 4px 10px;
+            color: var(--accent-light);
+            font-size: 10px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .web-result-import-btn:hover {
             background: var(--accent);
             color: #fff;
         }
 
-        .web-search-icon-btn svg {
+        .web-result-import-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .web-result-import-btn.imported {
+            background: rgba(137, 209, 133, 0.15);
+            border-color: var(--success);
+            color: var(--success);
+            cursor: default;
+        }
+
+        .web-search-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .web-search-loading .mini-spinner {
             width: 14px;
             height: 14px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
         /* ── Sources List Controls ── */
@@ -755,6 +936,110 @@
             font-style: italic;
         }
 
+        /* ── Citation Badges ── */
+        .citation-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 1px;
+            vertical-align: middle;
+            position: relative;
+            transition: all 0.15s ease;
+            line-height: 1;
+        }
+
+        .citation-badge:hover {
+            background: var(--accent-light);
+            transform: scale(1.15);
+        }
+
+        /* ── Citation Popover ── */
+        .citation-popover {
+            position: fixed;
+            z-index: 1000;
+            width: 380px;
+            max-height: 300px;
+            background: #1e1e1e;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+            overflow: hidden;
+            animation: popoverIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes popoverIn {
+            from { opacity: 0; transform: translateY(6px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .citation-popover-header {
+            padding: 12px 14px 10px;
+            background: #252526;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .citation-popover-header .source-icon {
+            font-size: 14px;
+        }
+
+        .citation-popover-body {
+            padding: 12px 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .citation-popover-body::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .citation-popover-body::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .citation-popover-footer {
+            padding: 8px 14px 10px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .citation-popover-footer a {
+            font-size: 12px;
+            color: var(--accent-light);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .citation-popover-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .citation-popover-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 999;
+        }
+
         /* ── Animations ── */
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -795,22 +1080,28 @@
             </button>
             <input type="file" id="file-upload-input" multiple accept=".pdf" style="display: none;" onchange="handleFileUpload(event)">
 
-            <!-- Web Search Mock Panel -->
-            <div class="web-search-card">
-                <div class="web-search-title">Search the web for new sources</div>
-                <div class="web-search-row">
-                    <button class="web-dropdown-btn" onclick="alert('Web search options: standard offline search is active')">
-                        <span style="font-size: 13px;">🌐</span> Web <span style="font-size: 8px; margin-left: 2px;">▼</span>
-                    </button>
-                    <button class="web-dropdown-btn" onclick="alert('Research speed options: Fast research is active')">
-                        <span style="font-size: 13px;">✨</span> Fast Research <span style="font-size: 8px; margin-left: 2px;">▼</span>
-                    </button>
-                    <button class="web-search-icon-btn" onclick="alert('Web search is currently simulated. Use Add Sources above to index PDFs.')">
+            <!-- Source Search Panel -->
+            <div class="web-search-card" id="source-search-card">
+                <div class="web-search-title">Search within your sources</div>
+                <div class="web-search-input-row">
+                    <input type="text" id="source-search-input" class="web-search-input" placeholder="Search PDFs and imports..." onkeydown="if(event.key==='Enter')performSourceSearch()">
+                    <button class="web-search-go-btn" id="source-search-go-btn" onclick="performSourceSearch()" title="Search sources">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="11" cy="11" r="8"></circle>
                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
                     </button>
+                </div>
+
+                <!-- Search Results Panel -->
+                <div class="web-search-results" id="source-search-results" style="display: none;">
+                    <div class="web-results-header">
+                        <span class="web-results-status" id="source-results-status"></span>
+                        <button class="web-results-close-btn" onclick="closeSourceSearchResults()" title="Close results">✕</button>
+                    </div>
+                    <div class="web-results-list" id="source-results-list">
+                        <!-- Dynamically filled -->
+                    </div>
                 </div>
             </div>
 
@@ -948,9 +1239,11 @@
                 const item = document.createElement('div');
                 item.className = 'source-item';
                 
+                const icon = doc.type === 'web' ? '🌐' : '📕';
+                
                 item.innerHTML = `
                     <div class="source-item-info">
-                        <span class="source-item-icon">📕</span>
+                        <span class="source-item-icon">${icon}</span>
                         <div class="source-item-details">
                             <span class="source-item-name" title="${doc.name}">${doc.name}</span>
                             <span class="source-item-size">${sizeStr}</span>
@@ -1112,7 +1405,7 @@
             sendMessage();
         }
 
-        function addMessage(text, role, elapsedSeconds = null) {
+        function addMessage(text, role, elapsedSeconds = null, sources = []) {
             if (welcomeScreen) {
                 welcomeScreen.style.display = 'none';
             }
@@ -1131,7 +1424,12 @@
                 const paragraphs = text.split('\n').filter(p => p.trim());
                 paragraphs.forEach(p => {
                     const el = document.createElement('p');
-                    el.textContent = p;
+                    // Replace [N] citation patterns with clickable badges
+                    if (sources.length > 0) {
+                        el.innerHTML = renderCitations(p, sources);
+                    } else {
+                        el.textContent = p;
+                    }
                     content.appendChild(el);
                 });
 
@@ -1153,6 +1451,78 @@
             scrollToBottom();
 
             return msg;
+        }
+
+        // Convert [1], [2], etc. in text to clickable citation badges
+        function renderCitations(text, sources) {
+            // Escape HTML first
+            const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Replace [N] patterns with badges
+            return escaped.replace(/\[(\d+)\]/g, (match, num) => {
+                const idx = parseInt(num) - 1;
+                if (idx >= 0 && idx < sources.length) {
+                    const sourceData = JSON.stringify(sources[idx]).replace(/"/g, '&quot;');
+                    return `<span class="citation-badge" onclick='showCitationPopover(event, ${idx}, ${sourceData})'>${num}</span>`;
+                }
+                return match;
+            });
+        }
+
+        // Show citation popover near the clicked badge
+        function showCitationPopover(event, index, source) {
+            event.stopPropagation();
+            closeCitationPopover();
+
+            const badge = event.target;
+            const rect = badge.getBoundingClientRect();
+
+            // Create overlay to catch clicks outside
+            const overlay = document.createElement('div');
+            overlay.className = 'citation-popover-overlay';
+            overlay.onclick = closeCitationPopover;
+
+            // Determine if source is PDF or web
+            const isPdf = source.source && source.source.toLowerCase().endsWith('.pdf');
+            const icon = isPdf ? '📕' : '🌐';
+            const pageInfo = source.page !== null && source.page !== undefined ? `, Page ${parseInt(source.page) + 1}` : '';
+
+            // Create popover
+            const popover = document.createElement('div');
+            popover.className = 'citation-popover';
+            popover.id = 'active-citation-popover';
+            popover.innerHTML = `
+                <div class="citation-popover-header">
+                    <span class="source-icon">${icon}</span>
+                    ${source.source}${pageInfo}
+                </div>
+                <div class="citation-popover-body">${source.snippet}</div>
+                <div class="citation-popover-footer">
+                    <a onclick="closeCitationPopover()">View source</a>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(popover);
+
+            // Position the popover
+            const popoverWidth = 380;
+            let left = rect.left + rect.width / 2 - popoverWidth / 2;
+            let top = rect.bottom + 8;
+
+            // Keep within viewport
+            if (left < 10) left = 10;
+            if (left + popoverWidth > window.innerWidth - 10) left = window.innerWidth - popoverWidth - 10;
+            if (top + 300 > window.innerHeight) top = rect.top - 308;
+
+            popover.style.left = left + 'px';
+            popover.style.top = top + 'px';
+        }
+
+        function closeCitationPopover() {
+            const existing = document.getElementById('active-citation-popover');
+            if (existing) existing.remove();
+            const overlay = document.querySelector('.citation-popover-overlay');
+            if (overlay) overlay.remove();
         }
 
         function addTypingIndicator() {
@@ -1212,7 +1582,7 @@
                 if (data.error) {
                     addMessage(`Error: ${data.error}`, 'bot');
                 } else {
-                    addMessage(data.answer, 'bot', data.elapsed_seconds);
+                    addMessage(data.answer, 'bot', data.elapsed_seconds, data.sources || []);
                 }
             } catch (err) {
                 removeTypingIndicator();
@@ -1226,6 +1596,99 @@
         // Initialize on load
         loadDocuments();
         questionInput.focus();
+
+        // ── Source Search Functions ──
+        const sourceSearchInput = document.getElementById('source-search-input');
+        const sourceSearchGoBtn = document.getElementById('source-search-go-btn');
+        const sourceSearchResults = document.getElementById('source-search-results');
+        const sourceResultsList = document.getElementById('source-results-list');
+        const sourceResultsStatus = document.getElementById('source-results-status');
+
+        let currentSourceSearchResults = [];
+
+
+
+        async function performSourceSearch() {
+            const query = sourceSearchInput.value.trim();
+            if (!query) return;
+
+            sourceSearchGoBtn.disabled = true;
+            sourceSearchResults.style.display = 'block';
+            sourceResultsList.innerHTML = '<div class="web-search-loading"><div class="mini-spinner"></div>Searching sources...</div>';
+            sourceResultsStatus.textContent = 'Searching...';
+
+            try {
+                const active_docs = Array.from(selectedDocs);
+                const res = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, active_docs, max_results: 8 })
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    sourceResultsList.innerHTML = `<div class="web-search-loading" style="color: var(--error);">Error: ${data.error}</div>`;
+                    sourceResultsStatus.textContent = 'Search failed';
+                    return;
+                }
+
+                currentSourceSearchResults = data.results || [];
+                renderSourceSearchResults();
+            } catch (err) {
+                sourceResultsList.innerHTML = `<div class="web-search-loading" style="color: var(--error);">Connection error</div>`;
+                sourceResultsStatus.textContent = 'Search failed';
+            } finally {
+                sourceSearchGoBtn.disabled = false;
+            }
+        }
+
+        function renderSourceSearchResults() {
+            if (currentSourceSearchResults.length === 0) {
+                sourceResultsList.innerHTML = '<div class="web-search-loading">No matching passages found</div>';
+                sourceResultsStatus.textContent = 'No results';
+                return;
+            }
+
+            sourceResultsStatus.textContent = `${currentSourceSearchResults.length} results found`;
+            sourceResultsList.innerHTML = '';
+
+            currentSourceSearchResults.forEach((result) => {
+                const item = document.createElement('div');
+                item.className = 'web-result-item';
+
+                const pageLabel = result.page === null || result.page === undefined || result.page === ''
+                    ? 'No page metadata'
+                    : `Page ${result.page}`;
+                const safeSource = escapeHtml(result.source || 'Source');
+                const safeSnippet = escapeHtml(result.snippet || '');
+                const safePageLabel = escapeHtml(pageLabel);
+
+                item.innerHTML = `
+                    <div class="web-result-favicon">📄</div>
+                    <div class="web-result-info">
+                        <div class="web-result-title">${safeSource}</div>
+                        <div class="web-result-snippet">${safeSnippet}</div>
+                        <div class="web-result-url">${safePageLabel}${result.score !== null && result.score !== undefined ? ` • Score ${result.score}` : ''}</div>
+                    </div>
+                `;
+                sourceResultsList.appendChild(item);
+            });
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function closeSourceSearchResults() {
+            sourceSearchResults.style.display = 'none';
+            currentSourceSearchResults = [];
+        }
     </script>
 </body>
 

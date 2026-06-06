@@ -165,6 +165,33 @@ curl -X POST http://localhost:5000/api/chat \
 }
 ```
 
+### Source Search Endpoint
+
+Use `/api/search` to get ranked snippets from the indexed documents, similar to NotebookLM-style source search:
+
+```bash
+curl -X POST http://localhost:5000/api/search \
+    -H "Content-Type: application/json" \
+    -d '{"query": "main topic", "active_docs": ["paper.pdf"], "max_results": 8}'
+```
+
+**Response:**
+
+```json
+{
+    "query": "main topic",
+    "count": 2,
+    "results": [
+        {
+            "source": "paper.pdf",
+            "page": 3,
+            "snippet": "...",
+            "score": 0.91
+        }
+    ]
+}
+```
+
 ---
 
 ## Project Structure

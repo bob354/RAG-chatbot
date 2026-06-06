@@ -59,8 +59,8 @@ def get_vector_store():
 
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n", ". ", " ", ""],
-        chunk_size=700,
-        chunk_overlap=100,
+        chunk_size=1200,
+        chunk_overlap=200,
         add_start_index=True,
         strip_whitespace=True
     )
@@ -83,7 +83,7 @@ if vector_store is not None:
     base_retriever = vector_store.as_retriever(
         search_type="similarity",
         search_kwargs={
-            "k": 5
+            "k": 10
         }
     )
 else:
@@ -98,13 +98,23 @@ def rebuild_index():
         base_retriever = vector_store.as_retriever(
             search_type="similarity",
             search_kwargs={
-                "k": 5
+                "k": 10
             }
         )
     else:
         base_retriever = None
     os.environ["FORCE_REINDEX"] = "false"
     print("Index rebuild completed.")
+
+
+def _matches_active_docs(doc, active_docs: list = None) -> bool:
+    if not active_docs:
+        return True
+
+    active_filenames = {os.path.basename(file_path) for file_path in active_docs}
+    doc_source = doc.metadata.get("source", "")
+    doc_filename = os.path.basename(doc_source)
+    return doc_filename in active_filenames
 
 def retrieve_docs(query: str, active_docs: list = None):
     """Retrieve documents using similarity search and filter by active documents."""
@@ -120,11 +130,47 @@ def retrieve_docs(query: str, active_docs: list = None):
             doc_filename = os.path.basename(doc_source)
             if doc_filename in active_filenames:
                 filtered.append(doc)
-        return filtered[:5]
+        return filtered[:10]
     else:
         if base_retriever is not None:
             return base_retriever.invoke(query)
         return []
+
+
+def search_docs(query: str, active_docs: list = None, max_results: int = 8):
+    """Return ranked document snippets for notebook-style source search."""
+    if vector_store is None or not query.strip():
+        return []
+
+    fetch_limit = max(max_results * 3, max_results)
+
+    try:
+        scored_docs = vector_store.similarity_search_with_relevance_scores(query, k=fetch_limit)
+    except Exception:
+        scored_docs = [(doc, None) for doc in vector_store.similarity_search(query, k=fetch_limit)]
+
+    results = []
+    for doc, score in scored_docs:
+        if not _matches_active_docs(doc, active_docs):
+            continue
+
+        source = doc.metadata.get("source", "unknown")
+        page = doc.metadata.get("page", None)
+        snippet = " ".join(doc.page_content.split())
+        if len(snippet) > 320:
+            snippet = snippet[:317].rstrip() + "..."
+
+        results.append({
+            "source": os.path.basename(source) or source,
+            "page": page,
+            "snippet": snippet,
+            "score": round(float(score), 4) if score is not None else None,
+        })
+
+        if len(results) >= max_results:
+            break
+
+    return results
 
 template = (
     "You are a strict, citation-focused assistant for a private knowledge base.\n"
@@ -133,7 +179,9 @@ template = (
     "2) If the answer is not clearly contained in the context, say: "
     "\"I don't know based on the provided documents.\"\n"
     "3) Do NOT use outside knowledge, guessing, or web information.\n"
-    "4) If applicable, cite sources as (source:page) using the metadata.\n\n"
+    "4) You MUST cite your sources using numbered references like [1], [2], etc. "
+    "that correspond to the source numbers given in the context.\n"
+    "5) Place the citation numbers inline right after the relevant sentence or claim.\n\n"
     "Context:\n{context}\n\n"
     "Question: {question}"
 )
@@ -153,13 +201,27 @@ llm = ChatGroq(
 )
 
 def format_docs(docs):
-    """Convert retrieved Document objects into readable text with source citations."""
+    """Convert retrieved Document objects into numbered text with source citations."""
     formatted = []
-    for doc in docs:
+    for i, doc in enumerate(docs, 1):
         source = doc.metadata.get("source", "unknown")
         page = doc.metadata.get("page", "?")
-        formatted.append(f"[Source: {source}, Page: {page}]\n{doc.page_content}")
+        formatted.append(f"[{i}] (Source: {os.path.basename(source)}, Page: {page})\n{doc.page_content}")
     return "\n\n---\n\n".join(formatted)
+
+def get_sources_metadata(docs):
+    """Extract source metadata from retrieved documents for frontend citation display."""
+    sources = []
+    for doc in docs:
+        source = doc.metadata.get("source", "unknown")
+        page = doc.metadata.get("page", None)
+        snippet = doc.page_content.strip()
+        sources.append({
+            "source": os.path.basename(source),
+            "page": page,
+            "snippet": snippet,
+        })
+    return sources
 
 rag_chain = (
     {
@@ -171,18 +233,23 @@ rag_chain = (
     | StrOutputParser()
 )
 
-def chat(question: str, active_docs: list = None) -> str:
-    """Send a question to the RAG chain and return the answer."""
+def chat(question: str, active_docs: list = None) -> dict:
+    """Send a question to the RAG chain and return the answer with source citations."""
     retrieved_docs = retrieve_docs(question, active_docs)
     context = format_docs(retrieved_docs)
+    sources = get_sources_metadata(retrieved_docs)
     chain = prompt | llm | StrOutputParser()
     response = chain.invoke({"context": context, "question": question})
-    return response
+    return {"answer": response, "sources": sources}
 
 if __name__ == "__main__":
     import time
     question = input("Question: ")
     start_time = time.time()
-    response = chat(question)
+    result = chat(question)
     print(f"Elapsed time (Sim Only): {time.time() - start_time:.2f} seconds")
-    print(response)
+    print(result["answer"])
+    print(f"\nSources used: {len(result['sources'])}")
+    for i, src in enumerate(result["sources"], 1):
+        print(f"  [{i}] {src['source']} (Page {src['page']})")
+

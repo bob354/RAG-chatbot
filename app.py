@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from chatbot import chat, rebuild_index
+from chatbot import chat, rebuild_index, search_docs
 import time
 import os
 from werkzeug.utils import secure_filename
@@ -22,7 +22,8 @@ def get_documents():
                 if os.path.isfile(path) and f.lower().endswith(".pdf"):
                     files.append({
                         "name": f,
-                        "size": os.path.getsize(path)
+                        "size": os.path.getsize(path),
+                        "type": "pdf"
                     })
         return jsonify({"documents": files})
     except Exception as e:
@@ -85,12 +86,43 @@ def api_chat():
 
     try:
         start_time = time.time()
-        answer = chat(question, active_docs)
+        result = chat(question, active_docs)
         elapsed_time = time.time() - start_time
         print(f"Elapsed time (Sim Only): {elapsed_time:.2f} seconds")
-        return jsonify({"answer": answer, "elapsed_seconds": elapsed_time})
+        return jsonify({
+            "answer": result["answer"],
+            "sources": result["sources"],
+            "elapsed_seconds": elapsed_time
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/search", methods=["POST"])
+def api_search():
+    data = request.get_json(silent=True) or {}
+    query = data.get("query", "").strip()
+    active_docs = data.get("active_docs", None)
+
+    try:
+        max_results = int(data.get("max_results", 8))
+    except (TypeError, ValueError):
+        max_results = 8
+
+    if not query:
+        return jsonify({"error": "Empty search query"}), 400
+
+    try:
+        results = search_docs(query, active_docs=active_docs, max_results=max_results)
+        return jsonify({
+            "query": query,
+            "count": len(results),
+            "results": results,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=5002)
