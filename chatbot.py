@@ -92,6 +92,18 @@ bm25_retriever = None
 
 print("Loading CrossEncoder reranker model (BAAI/bge-reranker-base)...")
 reranker = CrossEncoder("BAAI/bge-reranker-base", device=device)
+
+if device == "cpu":
+    print("Applying dynamic quantization to CrossEncoder for CPU speedup...")
+    try:
+        reranker.model = torch.quantization.quantize_dynamic(
+            reranker.model,
+            {torch.nn.Linear},
+            dtype=torch.qint8
+        )
+    except Exception as e:
+        print(f"Failed to quantize model: {e}")
+
 RERANK_TOP_N = 10
 
 def init_bm25():
