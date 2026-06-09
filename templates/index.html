@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -16,57 +18,119 @@
         }
 
         :root {
-            --bg-primary: #1e1e1e;
-            --bg-secondary: #252526;
-            --bg-tertiary: #2d2d2d;
-            --surface: #2d2d2d;
-            --surface-hover: #37373d;
-            --accent: #007acc;
-            --accent-glow: rgba(0, 122, 204, 0.25);
-            --accent-light: #4fc1ff;
-            --text-primary: #e0e0e0;
-            --text-secondary: #cccccc;
-            --text-muted: #858585;
+            --font-primary: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            --bg-app: #09090c;
+            --bg-primary: #111115;
+            --bg-secondary: #16161b;
+            --bg-tertiary: #1f1f26;
+            --surface: #191920;
+            --surface-hover: #22222b;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.15);
+            --accent-light: #60a5fa;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
             --border: rgba(255, 255, 255, 0.08);
-            --user-bubble: linear-gradient(135deg, #007acc, #005a9e);
-            --bot-bubble: #2d2d2d;
-            --error: #f14c4c;
-            --success: #89d185;
+            --border-light: rgba(255, 255, 255, 0.04);
+            --user-bubble: #2563eb;
+            --bot-bubble: #191920;
+            --error: #ef4444;
+            --error-glow: rgba(239, 68, 68, 0.15);
+            --success: #10b981;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.45);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
+            font-family: var(--font-primary);
+            background: var(--bg-app);
             color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            zoom: 1.07;
+        }
+
+        /* ── Custom Scrollbars ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ── Keyboard Accessibility Focus States ── */
+        *:focus-visible {
+            outline: 2.5px solid var(--accent-light);
+            outline-offset: 2px;
         }
 
         /* ── Layout Wrapper ── */
         .app-layout {
-            display: flex;
-            width: 100vw;
-            height: 100vh;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
+            background: radial-gradient(circle at 12% 18%, #141221 0%, #09090c 85%);
         }
 
-        /* ── Sidebar (Sources Panel) ── */
+        @media (max-width: 1200px) {
+            .app-layout {
+                grid-template-columns: 280px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Sidebar (Sources Panel) with Light Glassmorphism ── */
         .sidebar {
-            width: 330px;
-            background: var(--bg-secondary);
+            background: rgba(22, 22, 27, 0.45);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            flex-shrink: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             z-index: 10;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease, opacity 0.3s ease;
         }
 
         .sidebar.collapsed {
+            transform: translateX(-320px);
             width: 0;
             opacity: 0;
             pointer-events: none;
+            position: absolute;
+            height: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 280px;
+                transform: translateX(-280px);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
         }
 
         .sidebar-overlay {
@@ -75,21 +139,22 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(15, 15, 20, 0.85);
-            backdrop-filter: blur(4px);
+            background: rgba(9, 9, 12, 0.82);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 16px;
             z-index: 20;
-            animation: fadeIn 0.2s ease;
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .spinner {
-            width: 28px;
-            height: 28px;
-            border: 3px solid var(--border);
+            width: 32px;
+            height: 32px;
+            border: 3.5px solid var(--border);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -97,23 +162,24 @@
 
         .overlay-text {
             font-size: 13px;
-            color: var(--text-primary);
+            color: var(--text-secondary);
             font-weight: 500;
+            letter-spacing: 0.1px;
         }
 
         .sidebar-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 20px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border);
         }
 
         .sidebar-header h2 {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 600;
             color: var(--text-primary);
-            letter-spacing: -0.3px;
+            letter-spacing: -0.2px;
         }
 
         .sidebar-toggle-btn {
@@ -130,13 +196,13 @@
         }
 
         .sidebar-toggle-btn:hover {
-            background: var(--bg-tertiary);
+            background: var(--surface-hover);
             color: var(--text-primary);
         }
 
         .sidebar-toggle-btn svg {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
         }
 
         .add-source-btn {
@@ -144,14 +210,14 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin: 20px 20px 10px;
-            padding: 12px;
+            margin: 16px 20px 8px;
+            padding: 10px;
             background: transparent;
             border: 1px dashed var(--accent);
-            border-radius: 24px;
+            border-radius: 10px;
             color: var(--accent-light);
             font-family: inherit;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -161,26 +227,26 @@
             background: var(--accent-glow);
             border-color: var(--accent-light);
             color: #fff;
-            transform: translateY(-1px);
         }
 
-        /* ── Web Search Panel ── */
+        /* ── Source Search Card ── */
         .web-search-card {
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
             border-radius: 12px;
-            margin: 10px 20px 20px;
-            padding: 14px;
+            margin: 8px 20px 16px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .web-search-title {
             font-size: 11px;
-            color: var(--text-secondary);
+            color: var(--text-muted);
             font-weight: 500;
-            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .web-search-input-row {
@@ -193,13 +259,13 @@
             flex: 1;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 100px;
-            padding: 8px 14px;
+            border-radius: 8px;
+            padding: 8px 12px;
             color: var(--text-primary);
             font-size: 12px;
             font-family: inherit;
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.20s, box-shadow 0.20s;
         }
 
         .web-search-input:focus {
@@ -214,7 +280,7 @@
         .web-search-go-btn {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 50%;
+            border-radius: 8px;
             width: 32px;
             height: 32px;
             display: flex;
@@ -242,10 +308,9 @@
             height: 14px;
         }
 
-        /* ── Search Results Panel ── */
         .web-search-results {
             border-top: 1px solid var(--border);
-            padding-top: 10px;
+            padding-top: 8px;
             animation: fadeIn 0.25s ease;
         }
 
@@ -253,7 +318,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .web-results-status {
@@ -267,7 +332,7 @@
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             padding: 2px 6px;
             border-radius: 4px;
             transition: all 0.2s;
@@ -282,45 +347,30 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            max-height: 280px;
+            max-height: 200px;
             overflow-y: auto;
-        }
-
-        .web-results-list::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .web-results-list::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 2px;
         }
 
         .web-result-item {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
-            padding: 8px 10px;
+            gap: 8px;
+            padding: 8px;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 6px;
             transition: all 0.2s ease;
-            animation: itemIn 0.3s ease;
-        }
-
-        .web-result-item:hover {
-            border-color: rgba(255,255,255,0.15);
         }
 
         .web-result-favicon {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 4px;
             flex-shrink: 0;
-            margin-top: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
             background: var(--bg-tertiary);
         }
 
@@ -336,11 +386,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            cursor: pointer;
-        }
-
-        .web-result-title:hover {
-            text-decoration: underline;
+            cursor: default;
         }
 
         .web-result-snippet {
@@ -348,10 +394,6 @@
             color: var(--text-muted);
             line-height: 1.4;
             margin-top: 2px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .web-result-url {
@@ -359,42 +401,6 @@
             color: var(--text-muted);
             opacity: 0.7;
             margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .web-result-import-btn {
-            background: transparent;
-            border: 1px solid var(--accent);
-            border-radius: 6px;
-            padding: 4px 10px;
-            color: var(--accent-light);
-            font-size: 10px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .web-result-import-btn:hover {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        .web-result-import-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .web-result-import-btn.imported {
-            background: rgba(137, 209, 133, 0.15);
-            border-color: var(--success);
-            color: var(--success);
-            cursor: default;
         }
 
         .web-search-loading {
@@ -402,7 +408,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 16px;
+            padding: 12px;
             color: var(--text-muted);
             font-size: 12px;
         }
@@ -416,7 +422,7 @@
             animation: spin 0.8s linear infinite;
         }
 
-        /* ── Sources List Controls ── */
+        /* ── Sources List Header ── */
         .sources-list-header {
             display: flex;
             align-items: center;
@@ -424,7 +430,7 @@
             padding: 10px 20px;
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
-            background: var(--bg-secondary);
+            background: rgba(22, 22, 27, 0.2);
         }
 
         .select-all-wrapper {
@@ -452,7 +458,10 @@
         .refresh-btn:hover {
             color: var(--accent-light);
             background: var(--surface-hover);
-            transform: rotate(30deg);
+        }
+
+        .refresh-btn.spinning svg {
+            animation: spin 1s linear infinite;
         }
 
         .select-all-inner {
@@ -462,9 +471,11 @@
         }
 
         .select-all-text {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         input[type="checkbox"] {
@@ -472,8 +483,11 @@
             cursor: pointer;
             width: 15px;
             height: 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
         }
 
+        /* ── Sources List ── */
         .sources-list {
             flex: 1;
             overflow-y: auto;
@@ -483,15 +497,7 @@
             gap: 8px;
         }
 
-        .sources-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .sources-list::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 2px;
-        }
-
+        /* Solid Card Backgrounds for high readability */
         .source-item {
             display: flex;
             align-items: center;
@@ -499,14 +505,23 @@
             padding: 10px 12px;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            transition: all 0.2s ease;
+            border-radius: 8px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             animation: itemIn 0.3s ease;
         }
 
         .source-item:hover {
             background: var(--surface-hover);
-            border-color: var(--accent);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Highlighted link state triggered by hovering citation badges */
+        .source-item.highlighted {
+            border-color: var(--accent-light);
+            box-shadow: 0 0 12px var(--accent-glow);
+            background: var(--surface-hover);
+            transform: translateY(-1px);
         }
 
         .source-item-info {
@@ -518,7 +533,10 @@
         }
 
         .source-item-icon {
-            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-light);
             flex-shrink: 0;
         }
 
@@ -570,7 +588,7 @@
 
         .delete-doc-btn:hover {
             color: var(--error);
-            background: rgba(245, 70, 91, 0.1);
+            background: var(--error-glow);
         }
 
         /* ── Main Chat Area ── */
@@ -583,15 +601,16 @@
             background: var(--bg-primary);
         }
 
-        /* ── Header ── */
+        /* Header with Translucency */
         .header {
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 18px 28px;
-            background: var(--bg-secondary);
+            padding: 16px 28px;
+            background: rgba(22, 22, 27, 0.35);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(12px);
             flex-shrink: 0;
         }
 
@@ -601,42 +620,44 @@
         }
 
         .header-icon {
-            width: 42px;
-            height: 42px;
+            width: 36px;
+            height: 36px;
             background: var(--user-bubble);
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 20px var(--accent-glow);
+            color: #fff;
+            box-shadow: 0 4px 14px var(--accent-glow);
         }
 
         .header-info h1 {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
         }
 
         .header-info p {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
-            margin-top: 2px;
+            margin-top: 1px;
+            display: flex;
+            align-items: center;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: var(--success);
             border-radius: 50%;
             display: inline-block;
-            margin-right: 5px;
+            margin-right: 6px;
             animation: pulse-dot 2s ease-in-out infinite;
         }
 
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+            50% { opacity: 0.3; }
         }
 
         /* ── Chat Container ── */
@@ -646,35 +667,22 @@
             padding: 28px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
             scroll-behavior: smooth;
         }
 
-        .chat-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb {
-            background: var(--bg-tertiary);
-            border-radius: 3px;
-        }
-
-        /* ── Messages ── */
+        /* ── Messages with Solid Backgrounds ── */
         .message {
             display: flex;
-            gap: 12px;
-            max-width: 78%;
+            gap: 14px;
+            max-width: 80%;
             animation: msgIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes msgIn {
             from {
                 opacity: 0;
-                transform: translateY(12px);
+                transform: translateY(8px);
             }
             to {
                 opacity: 1;
@@ -685,7 +693,7 @@
         @keyframes itemIn {
             from {
                 opacity: 0;
-                transform: translateY(6px);
+                transform: translateY(4px);
             }
             to {
                 opacity: 1;
@@ -699,46 +707,55 @@
         }
 
         .message-avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
             flex-shrink: 0;
-            margin-top: 4px;
+            margin-top: 2px;
+            color: #fff;
         }
 
         .message.bot .message-avatar {
             background: var(--bg-tertiary);
             border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
 
         .message.user .message-avatar {
             background: var(--user-bubble);
-            box-shadow: 0 2px 12px var(--accent-glow);
+            box-shadow: 0 2px 10px var(--accent-glow);
         }
 
         .message-content {
-            padding: 14px 18px;
-            border-radius: 16px;
-            line-height: 1.65;
-            font-size: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 14.5px;
             position: relative;
         }
 
+        /* Solid Message Bubbles for readability */
         .message.bot .message-content {
-            background: var(--surface);
+            background: var(--bot-bubble);
             border: 1px solid var(--border);
-            border-bottom-left-radius: 4px;
+            border-top-left-radius: 2px;
             color: var(--text-primary);
         }
 
         .message.user .message-content {
             background: var(--user-bubble);
-            border-bottom-right-radius: 4px;
+            border-top-right-radius: 2px;
             color: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .message.error-message .message-content {
+            background: var(--error-glow) !important;
+            border-color: var(--error) !important;
+            color: var(--text-primary);
         }
 
         .message-content p {
@@ -749,41 +766,51 @@
             margin-bottom: 0;
         }
 
-        /* ── Typing Indicator ── */
-        .typing-indicator {
+        /* ── Shimmering Skeleton Loader ── */
+        .skeleton-loader {
             display: flex;
-            gap: 5px;
-            padding: 6px 4px;
+            flex-direction: column;
+            gap: 8px;
+            width: 280px;
+            padding: 4px 0;
         }
 
-        .typing-indicator span {
-            width: 7px;
-            height: 7px;
-            background: var(--text-muted);
-            border-radius: 50%;
-            animation: typing 1.4s ease-in-out infinite;
+        .skeleton-line {
+            height: 12px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.15s;
+        .shimmer {
+            position: relative;
+            overflow: hidden;
         }
 
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.3s;
+        .shimmer::after {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.03) 20%,
+                rgba(255, 255, 255, 0.08) 60%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer-anim 1.5s infinite;
+            content: '';
         }
 
-        @keyframes typing {
-            0%, 60%, 100% {
-                transform: translateY(0);
-                opacity: 0.4;
+        @keyframes shimmer-anim {
+            100% {
+                transform: translateX(100%);
             }
-            30% {
-                transform: translateY(-6px);
-                opacity: 1;
-            }
         }
 
-        /* ── Welcome Screen ── */
+        /* ── Welcome & Empty states ── */
         .welcome {
             flex: 1;
             display: flex;
@@ -792,33 +819,77 @@
             justify-content: center;
             text-align: center;
             gap: 16px;
-            opacity: 0.85;
+            padding: 40px;
         }
 
         .welcome-icon {
-            width: 72px;
-            height: 72px;
-            background: var(--user-bubble);
-            border-radius: 20px;
+            width: 64px;
+            height: 64px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 34px;
-            box-shadow: 0 8px 40px var(--accent-glow);
+            color: var(--accent-light);
+            box-shadow: var(--shadow-sm);
             margin-bottom: 8px;
         }
 
         .welcome h2 {
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.4px;
         }
 
         .welcome p {
             color: var(--text-secondary);
-            font-size: 14px;
-            max-width: 400px;
+            font-size: 13.5px;
+            max-width: 440px;
             line-height: 1.6;
+        }
+
+        /* Sidebar Empty State Card */
+        .sidebar-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 32px 16px;
+            border: 1.5px dashed var(--border);
+            border-radius: 12px;
+            margin: 16px 20px;
+            background: rgba(255, 255, 255, 0.01);
+            gap: 12px;
+        }
+
+        .sidebar-empty-icon {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .sidebar-empty-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Unchecked warning state */
+        .unchecked-sources-warning {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 20px;
+            color: #f87171;
+            font-size: 12px;
+            font-weight: 500;
+            animation: fadeIn 0.2s ease;
         }
 
         .suggestion-chips {
@@ -827,15 +898,15 @@
             gap: 8px;
             margin-top: 12px;
             justify-content: center;
-            max-width: 600px;
+            max-width: 560px;
         }
 
         .chip {
-            padding: 10px 18px;
+            padding: 8px 16px;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 100px;
-            font-size: 13px;
+            font-size: 12.5px;
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.2s ease;
@@ -844,15 +915,16 @@
 
         .chip:hover {
             background: var(--surface-hover);
-            border-color: var(--accent);
-            color: var(--accent-light);
-            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
         }
 
-        /* ── Input Area ── */
+        /* ── Input Area with Glassmorphism ── */
         .input-area {
             padding: 16px 28px 24px;
-            background: var(--bg-secondary);
+            background: rgba(22, 22, 27, 0.35);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-top: 1px solid var(--border);
             flex-shrink: 0;
         }
@@ -863,9 +935,9 @@
             gap: 10px;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 6px 6px 6px 18px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            padding: 6px 6px 6px 14px;
+            transition: border-color 0.20s ease, box-shadow 0.20s ease;
         }
 
         .input-wrapper:focus-within {
@@ -893,11 +965,11 @@
         }
 
         #send-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             background: var(--user-bubble);
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             color: #fff;
             cursor: pointer;
             display: flex;
@@ -908,31 +980,31 @@
         }
 
         #send-btn:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 4px 16px var(--accent-glow);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--accent-glow);
         }
 
         #send-btn:disabled {
-            opacity: 0.4;
+            opacity: 0.35;
             cursor: not-allowed;
         }
 
         #send-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
         }
 
         .footer-note {
             text-align: center;
             font-size: 11px;
             color: var(--text-muted);
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .elapsed-time {
             font-size: 11px;
             color: var(--text-muted);
-            margin-top: 8px;
+            margin-top: 6px;
             font-style: italic;
         }
 
@@ -943,48 +1015,51 @@
             justify-content: center;
             width: 18px;
             height: 18px;
-            background: var(--accent);
-            color: #fff;
+            background: var(--accent-glow);
+            border: 1px solid rgba(37, 99, 235, 0.4);
+            color: var(--accent-light);
             font-size: 10px;
             font-weight: 700;
             border-radius: 4px;
             cursor: pointer;
-            margin: 0 1px;
+            margin: 0 2px;
             vertical-align: middle;
             position: relative;
-            transition: all 0.15s ease;
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
             line-height: 1;
         }
 
         .citation-badge:hover {
-            background: var(--accent-light);
-            transform: scale(1.15);
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            transform: scale(1.15) translateY(-1px);
         }
 
-        /* ── Citation Popover ── */
+        /* Solid Citation Popover */
         .citation-popover {
             position: fixed;
             z-index: 1000;
             width: 380px;
             max-height: 300px;
-            background: #1e1e1e;
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 12px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+            background: #15141b;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            box-shadow: var(--shadow-md);
             overflow: hidden;
-            animation: popoverIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: popoverIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes popoverIn {
-            from { opacity: 0; transform: translateY(6px) scale(0.97); }
+            from { opacity: 0; transform: translateY(4px) scale(0.98); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .citation-popover-header {
-            padding: 12px 14px 10px;
-            background: #252526;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            font-size: 12px;
+            padding: 10px 14px;
+            background: #1c1a24;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-primary);
             display: flex;
@@ -993,34 +1068,28 @@
         }
 
         .citation-popover-header .source-icon {
-            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-light);
         }
 
         .citation-popover-body {
             padding: 12px 14px;
             max-height: 200px;
             overflow-y: auto;
-            font-size: 13px;
-            line-height: 1.6;
+            font-size: 12.5px;
+            line-height: 1.5;
             color: var(--text-secondary);
         }
 
-        .citation-popover-body::-webkit-scrollbar {
-            width: 3px;
-        }
-
-        .citation-popover-body::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 2px;
-        }
-
         .citation-popover-footer {
-            padding: 8px 14px 10px;
-            border-top: 1px solid rgba(255,255,255,0.08);
+            padding: 8px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .citation-popover-footer a {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--accent-light);
             text-decoration: none;
             font-weight: 500;
@@ -1048,6 +1117,43 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* ── Responsive Laptop Adaptations ── */
+        @media (max-width: 1024px) {
+            .chat-container {
+                padding: 20px;
+            }
+            .header {
+                padding: 12px 20px;
+            }
+            .input-area {
+                padding: 12px 20px 18px;
+            }
+            #sidebar-open-btn {
+                display: flex;
+            }
+        }
+
+        /* ── Mobile Sidebar Backdrop ── */
+        .mobile-sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(9, 9, 12, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9;
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar.active ~ .mobile-sidebar-backdrop {
+                display: block;
+            }
+        }
     </style>
 </head>
 
@@ -1071,7 +1177,7 @@
                 </button>
             </div>
 
-            <button class="add-source-btn" onclick="triggerFileUpload()">
+            <button class="add-source-btn" onclick="triggerFileUpload()" title="Add PDF source file">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -1084,7 +1190,7 @@
             <div class="web-search-card" id="source-search-card">
                 <div class="web-search-title">Search within your sources</div>
                 <div class="web-search-input-row">
-                    <input type="text" id="source-search-input" class="web-search-input" placeholder="Search PDFs and imports..." onkeydown="if(event.key==='Enter')performSourceSearch()">
+                    <input type="text" id="source-search-input" class="web-search-input" placeholder="Search PDFs..." onkeydown="if(event.key==='Enter')performSourceSearch()">
                     <button class="web-search-go-btn" id="source-search-go-btn" onclick="performSourceSearch()" title="Search sources">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="11" cy="11" r="8"></circle>
@@ -1136,7 +1242,12 @@
                         <line x1="9" y1="3" x2="9" y2="21"></line>
                     </svg>
                 </button>
-                <div class="header-icon">📚</div>
+                <div class="header-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
                 <div class="header-info">
                     <h1>RAG Knowledge Assistant</h1>
                     <p><span class="status-dot"></span>Powered by LLaMA 3.1 + FAISS</p>
@@ -1146,7 +1257,11 @@
             <!-- Chat area -->
             <div class="chat-container" id="chat-container">
                 <div class="welcome" id="welcome-screen">
-                    <div class="welcome-icon">🧠</div>
+                    <div class="welcome-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2zM14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2z"></path>
+                        </svg>
+                    </div>
                     <h2>Ask your documents anything</h2>
                     <p>I can answer questions based on the PDFs loaded in the knowledge base. Ask me about their content!</p>
                     <div class="suggestion-chips">
@@ -1155,6 +1270,16 @@
                         <button class="chip" onclick="askSuggestion(this)">What is the key argument?</button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Unchecked sources warning banner -->
+            <div id="sources-warning-banner" class="unchecked-sources-warning" style="display: none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>Please select at least one source in the sidebar to chat.</span>
             </div>
 
             <!-- Input area -->
@@ -1173,6 +1298,9 @@
                 <div class="footer-note">Press Enter to send · Shift+Enter for new line</div>
             </div>
         </div>
+
+        <!-- Mobile sidebar backdrop overlay -->
+        <div id="mobile-sidebar-backdrop" class="mobile-sidebar-backdrop" onclick="toggleSidebar()"></div>
     </div>
 
     <script>
@@ -1188,8 +1316,41 @@
         let allDocs = [];
         let selectedDocs = new Set();
 
+        // Reusable SVG icons
+        const PDF_ICON_SVG = `
+            <svg class="source-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+        `;
+        const WEB_ICON_SVG = `
+            <svg class="source-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+        `;
+        const USER_AVATAR_SVG = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+        `;
+        const BOT_AVATAR_SVG = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                <circle cx="12" cy="5" r="2"></circle>
+                <path d="M12 7v4M8 16h.01M16 16h.01"></path>
+            </svg>
+        `;
+
         // Load documents from backend
         async function loadDocuments() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            if (refreshBtn) refreshBtn.classList.add('spinning');
             try {
                 const res = await fetch('/api/documents');
                 const data = await res.json();
@@ -1213,8 +1374,11 @@
                 selectedDocs = newSelection;
                 
                 renderDocuments();
+                updateSourcesWarning();
             } catch (err) {
                 console.error("Connection error loading documents:", err);
+            } finally {
+                if (refreshBtn) refreshBtn.classList.remove('spinning');
             }
         }
 
@@ -1224,8 +1388,18 @@
             
             if (allDocs.length === 0) {
                 sourcesList.innerHTML = `
-                    <div style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 30px; line-height: 1.6;">
-                        No sources loaded.<br>Click "+ Add sources" to index PDFs.
+                    <div class="sidebar-empty-state">
+                        <div class="sidebar-empty-icon">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div class="sidebar-empty-text">
+                            No documents indexed yet.<br>Click <strong>Add sources</strong> above to upload PDF documents.
+                        </div>
                     </div>
                 `;
                 selectAllCheckbox.checked = false;
@@ -1238,12 +1412,13 @@
                 
                 const item = document.createElement('div');
                 item.className = 'source-item';
+                item.setAttribute('data-doc-name', doc.name);
                 
-                const icon = doc.type === 'web' ? '🌐' : '📕';
+                const iconHtml = doc.type === 'web' ? WEB_ICON_SVG : PDF_ICON_SVG;
                 
                 item.innerHTML = `
                     <div class="source-item-info">
-                        <span class="source-item-icon">${icon}</span>
+                        <span class="source-item-icon">${iconHtml}</span>
                         <div class="source-item-details">
                             <span class="source-item-name" title="${doc.name}">${doc.name}</span>
                             <span class="source-item-size">${sizeStr}</span>
@@ -1279,6 +1454,7 @@
             // Update select all checkbox state
             const allChecked = allDocs.every(doc => selectedDocs.has(doc.name));
             selectAllCheckbox.checked = allChecked;
+            updateSourcesWarning();
         }
 
         // Handle select all checkbox click
@@ -1289,6 +1465,7 @@
                 selectedDocs.clear();
             }
             renderDocuments();
+            updateSourcesWarning();
         }
 
         // Toggle select all from the parent wrapper
@@ -1380,17 +1557,42 @@
         // Toggle Sidebar
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const openBtn = document.getElementById('sidebar-open-btn');
-            sidebar.classList.toggle('collapsed');
             
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            openBtn.style.display = isCollapsed ? 'flex' : 'none';
+            if (window.innerWidth <= 768) {
+                // Mobile behavior: toggle "active" class
+                sidebar.classList.toggle('active');
+                sidebar.classList.remove('collapsed');
+            } else {
+                // Desktop behavior: toggle "collapsed" class
+                sidebar.classList.toggle('collapsed');
+                sidebar.classList.remove('active');
+            }
+            
+            updateSidebarButtonVisibility();
         }
 
-        // Auto-resize textarea
+        function updateSidebarButtonVisibility() {
+            const sidebar = document.getElementById('sidebar');
+            const openBtn = document.getElementById('sidebar-open-btn');
+            if (!sidebar || !openBtn) return;
+            
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                const isActive = sidebar.classList.contains('active');
+                openBtn.style.display = isActive ? 'none' : 'flex';
+            } else {
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                openBtn.style.display = isCollapsed ? 'flex' : 'none';
+            }
+        }
+
+        window.addEventListener('resize', updateSidebarButtonVisibility);
+
+        // Auto-resize textarea & reactive button state
         questionInput.addEventListener('input', () => {
             questionInput.style.height = 'auto';
             questionInput.style.height = Math.min(questionInput.scrollHeight, 120) + 'px';
+            updateSourcesWarning();
         });
 
         function handleKeyDown(e) {
@@ -1405,17 +1607,42 @@
             sendMessage();
         }
 
-        function addMessage(text, role, elapsedSeconds = null, sources = []) {
+        // Warning banner controller
+        function updateSourcesWarning() {
+            const banner = document.getElementById('sources-warning-banner');
+            if (!banner) return;
+            
+            if (allDocs.length === 0) {
+                banner.style.display = 'none';
+                sendBtn.disabled = true;
+                questionInput.disabled = true;
+                questionInput.placeholder = "Upload PDF documents to start chatting...";
+            } else if (selectedDocs.size === 0) {
+                banner.style.display = 'flex';
+                sendBtn.disabled = true;
+                questionInput.disabled = true;
+                questionInput.placeholder = "Select a source in the sidebar to ask a question...";
+            } else {
+                banner.style.display = 'none';
+                questionInput.disabled = false;
+                questionInput.placeholder = "Ask a question about your documents...";
+                const hasInput = !!questionInput.value.trim();
+                const isTyping = !!document.getElementById('typing-indicator');
+                sendBtn.disabled = isTyping || !hasInput;
+            }
+        }
+
+        function addMessage(text, role, elapsedSeconds = null, sources = [], isError = false) {
             if (welcomeScreen) {
                 welcomeScreen.style.display = 'none';
             }
 
             const msg = document.createElement('div');
-            msg.className = `message ${role}`;
+            msg.className = `message ${role} ${isError ? 'error-message' : ''}`;
 
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.textContent = role === 'user' ? '👤' : '🤖';
+            avatar.innerHTML = role === 'user' ? USER_AVATAR_SVG : BOT_AVATAR_SVG;
 
             const content = document.createElement('div');
             content.className = 'message-content';
@@ -1424,12 +1651,8 @@
                 const paragraphs = text.split('\n').filter(p => p.trim());
                 paragraphs.forEach(p => {
                     const el = document.createElement('p');
-                    // Replace [N] citation patterns with clickable badges
-                    if (sources.length > 0) {
-                        el.innerHTML = renderCitations(p, sources);
-                    } else {
-                        el.textContent = p;
-                    }
+                    // Escape HTML, parse markdown (bold/italic/code), and add citation badges
+                    el.innerHTML = formatMessageText(p, sources);
                     content.appendChild(el);
                 });
 
@@ -1453,19 +1676,74 @@
             return msg;
         }
 
-        // Convert [1], [2], etc. in text to clickable citation badges
-        function renderCitations(text, sources) {
-            // Escape HTML first
-            const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            // Replace [N] patterns with badges
-            return escaped.replace(/\[(\d+)\]/g, (match, num) => {
-                const idx = parseInt(num) - 1;
-                if (idx >= 0 && idx < sources.length) {
-                    const sourceData = JSON.stringify(sources[idx]).replace(/"/g, '&quot;');
-                    return `<span class="citation-badge" onclick='showCitationPopover(event, ${idx}, ${sourceData})'>${num}</span>`;
+        // Parse basic Markdown (bold, italic, inline code) and render citation badges
+        function formatMessageText(text, sources = []) {
+            // 1. Escape HTML first
+            let formatted = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // 2. Parse inline code: `code` -> <code>code</code>
+            formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // 3. Parse bold: **text** -> <strong>$1</strong>
+            formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+            // 4. Parse italic: *text* -> <em>$1</em>
+            formatted = formatted.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+            // 5. Replace [N] citation patterns with clickable badges
+            if (sources && sources.length > 0) {
+                formatted = formatted.replace(/\[(\d+)\]/g, (match, num) => {
+                    const idx = parseInt(num) - 1;
+                    if (idx >= 0 && idx < sources.length) {
+                        const sourceData = JSON.stringify(sources[idx]).replace(/"/g, '&quot;');
+                        return `<span class="citation-badge" 
+                                      onclick='showCitationPopover(event, ${idx}, ${sourceData})'
+                                      onmouseenter='highlightSourceCard(event)'
+                                      onmouseleave='unhighlightSourceCard(event)'
+                                      data-source="${sourceData}">${num}</span>`;
+                    }
+                    return match;
+                });
+            }
+
+            return formatted;
+        }
+
+        // Interactive Hover Linkage
+        function highlightSourceCard(event) {
+            const badge = event.currentTarget;
+            const sourceDataStr = badge.getAttribute('data-source');
+            if (!sourceDataStr) return;
+            try {
+                const source = JSON.parse(sourceDataStr);
+                const items = document.querySelectorAll('.source-item');
+                const target = Array.from(items).find(item => item.getAttribute('data-doc-name') === source.source);
+                if (target) {
+                    target.classList.add('highlighted');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
-                return match;
-            });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function unhighlightSourceCard(event) {
+            const badge = event.currentTarget;
+            const sourceDataStr = badge.getAttribute('data-source');
+            if (!sourceDataStr) return;
+            try {
+                const source = JSON.parse(sourceDataStr);
+                const items = document.querySelectorAll('.source-item');
+                const target = Array.from(items).find(item => item.getAttribute('data-doc-name') === source.source);
+                if (target) {
+                    target.classList.remove('highlighted');
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         // Show citation popover near the clicked badge
@@ -1483,7 +1761,7 @@
 
             // Determine if source is PDF or web
             const isPdf = source.source && source.source.toLowerCase().endsWith('.pdf');
-            const icon = isPdf ? '📕' : '🌐';
+            const iconHtml = isPdf ? PDF_ICON_SVG : WEB_ICON_SVG;
             const pageInfo = source.page !== null && source.page !== undefined ? `, Page ${parseInt(source.page) + 1}` : '';
 
             // Create popover
@@ -1492,7 +1770,7 @@
             popover.id = 'active-citation-popover';
             popover.innerHTML = `
                 <div class="citation-popover-header">
-                    <span class="source-icon">${icon}</span>
+                    <span class="source-icon">${iconHtml}</span>
                     ${source.source}${pageInfo}
                 </div>
                 <div class="citation-popover-body">${source.snippet}</div>
@@ -1532,11 +1810,17 @@
 
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.textContent = '🤖';
+            avatar.innerHTML = BOT_AVATAR_SVG;
 
             const content = document.createElement('div');
             content.className = 'message-content';
-            content.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            content.innerHTML = `
+                <div class="skeleton-loader">
+                    <div class="skeleton-line shimmer" style="width: 90%;"></div>
+                    <div class="skeleton-line shimmer" style="width: 75%;"></div>
+                    <div class="skeleton-line shimmer" style="width: 85%;"></div>
+                </div>
+            `;
 
             msg.appendChild(avatar);
             msg.appendChild(content);
@@ -1580,21 +1864,23 @@
                 removeTypingIndicator();
 
                 if (data.error) {
-                    addMessage(`Error: ${data.error}`, 'bot');
+                    addMessage(`Error: ${data.error}`, 'bot', null, [], true);
                 } else {
                     addMessage(data.answer, 'bot', data.elapsed_seconds, data.sources || []);
                 }
             } catch (err) {
                 removeTypingIndicator();
-                addMessage(`Connection error: ${err.message}`, 'bot');
+                addMessage(`Connection error: ${err.message}`, 'bot', null, [], true);
             }
 
             sendBtn.disabled = false;
+            updateSourcesWarning();
             questionInput.focus();
         }
 
         // Initialize on load
         loadDocuments();
+        updateSidebarButtonVisibility();
         questionInput.focus();
 
         // ── Source Search Functions ──
@@ -1605,8 +1891,6 @@
         const sourceResultsStatus = document.getElementById('source-results-status');
 
         let currentSourceSearchResults = [];
-
-
 
         async function performSourceSearch() {
             const query = sourceSearchInput.value.trim();
@@ -1665,7 +1949,7 @@
                 const safePageLabel = escapeHtml(pageLabel);
 
                 item.innerHTML = `
-                    <div class="web-result-favicon">📄</div>
+                    <div class="web-result-favicon">${PDF_ICON_SVG}</div>
                     <div class="web-result-info">
                         <div class="web-result-title">${safeSource}</div>
                         <div class="web-result-snippet">${safeSnippet}</div>
