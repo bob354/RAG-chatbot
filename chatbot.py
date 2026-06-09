@@ -9,8 +9,15 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_groq import ChatGroq
+from langchain_community.retrievers import BM25Retriever
+from sentence_transformers import CrossEncoder
+
+import torch
 
 load_dotenv()
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {device.upper()}")
 
 def get_vector_store():
     embedding_model_name = os.getenv("HUGGINGFACE_EMBEDDING_MODEL")
@@ -19,7 +26,7 @@ def get_vector_store():
 
     embeddings = HuggingFaceEmbeddings(
         model_name=embedding_model_name,
-        model_kwargs={"trust_remote_code": True},
+        model_kwargs={"trust_remote_code": True, "device": device},
         encode_kwargs={"normalize_embeddings": True}
     )
 
@@ -79,18 +86,45 @@ def get_vector_store():
 
 vector_store = get_vector_store()
 
+# Initialize retrievers and rerankers
+base_retriever = None
+bm25_retriever = None
+
+print("Loading CrossEncoder reranker model (BAAI/bge-reranker-base)...")
+reranker = CrossEncoder("BAAI/bge-reranker-base", device=device)
+RERANK_TOP_N = 10
+
+def init_bm25():
+    global bm25_retriever
+    if vector_store is not None:
+        try:
+            # Extract all documents from FAISS docstore
+            faiss_docs = list(vector_store.docstore._dict.values())
+            if faiss_docs:
+                print(f"Initializing BM25 retriever with {len(faiss_docs)} document chunks...")
+                bm25_retriever = BM25Retriever.from_documents(faiss_docs)
+                bm25_retriever.k = 20  # Fetch top 20 keyword matches
+            else:
+                bm25_retriever = None
+        except Exception as e:
+            print(f"Error initializing BM25: {e}")
+            bm25_retriever = None
+    else:
+        bm25_retriever = None
+
 if vector_store is not None:
     base_retriever = vector_store.as_retriever(
         search_type="similarity",
         search_kwargs={
-            "k": 10
+            "k": 20
         }
     )
+    init_bm25()
 else:
     base_retriever = None
 
 def rebuild_index():
-    global vector_store, base_retriever
+    global vector_store, base_retriever, bm25_retriever
     print("Rebuilding index dynamically...")
     os.environ["FORCE_REINDEX"] = "true"
     vector_store = get_vector_store()
@@ -98,11 +132,13 @@ def rebuild_index():
         base_retriever = vector_store.as_retriever(
             search_type="similarity",
             search_kwargs={
-                "k": 10
+                "k": 20
             }
         )
+        init_bm25()
     else:
         base_retriever = None
+        bm25_retriever = None
     os.environ["FORCE_REINDEX"] = "false"
     print("Index rebuild completed.")
 
@@ -117,24 +153,72 @@ def _matches_active_docs(doc, active_docs: list = None) -> bool:
     return doc_filename in active_filenames
 
 def retrieve_docs(query: str, active_docs: list = None):
-    """Retrieve documents using similarity search and filter by active documents."""
+    """Retrieve documents using Hybrid Search (BM25 + Semantic) and filter/rerank them."""
     if vector_store is None:
         return []
     
+    # 1. Fetch vector candidates
     if active_docs is not None:
-        docs = vector_store.similarity_search(query, k=30)
+        # If active_docs is specified, we retrieve and manually filter to match them
+        vector_candidates = vector_store.similarity_search(query, k=30)
         active_filenames = {os.path.basename(f) for f in active_docs}
-        filtered = []
-        for doc in docs:
-            doc_source = doc.metadata.get("source", "")
-            doc_filename = os.path.basename(doc_source)
-            if doc_filename in active_filenames:
-                filtered.append(doc)
-        return filtered[:10]
+        vector_docs = [
+            doc for doc in vector_candidates 
+            if os.path.basename(doc.metadata.get("source", "")) in active_filenames
+        ][:20]
     else:
         if base_retriever is not None:
-            return base_retriever.invoke(query)
+            vector_docs = base_retriever.invoke(query)
+        else:
+            vector_docs = []
+
+    # 2. Fetch BM25 candidates
+    bm25_docs = []
+    if active_docs is not None:
+        # Filter all documents to only contain active ones, and build temporary BM25
+        active_filenames = {os.path.basename(f) for f in active_docs}
+        all_docs = list(vector_store.docstore._dict.values())
+        filtered_all = [
+            doc for doc in all_docs 
+            if os.path.basename(doc.metadata.get("source", "")) in active_filenames
+        ]
+        if filtered_all:
+            try:
+                temp_bm25 = BM25Retriever.from_documents(filtered_all)
+                temp_bm25.k = min(20, len(filtered_all))
+                bm25_docs = temp_bm25.invoke(query)
+            except Exception as e:
+                print(f"Error building temporary BM25: {e}")
+    else:
+        if bm25_retriever is not None:
+            try:
+                bm25_docs = bm25_retriever.invoke(query)
+            except Exception as e:
+                print(f"Error running global BM25 query: {e}")
+
+    # 3. Merge and deduplicate candidates
+    seen = set()
+    candidates = []
+    for doc in vector_docs + bm25_docs:
+        doc_id = (doc.page_content, doc.metadata.get("source", ""), doc.metadata.get("page", ""))
+        if doc_id not in seen:
+            seen.add(doc_id)
+            candidates.append(doc)
+
+    if not candidates:
         return []
+
+    # 4. Rerank candidates using CrossEncoder reranker
+    try:
+        pairs = [[query, doc.page_content] for doc in candidates]
+        scores = reranker.predict(pairs)
+        scored_docs = sorted(zip(scores, candidates), key=lambda x: x[0], reverse=True)
+        # Select top RERANK_TOP_N documents
+        reranked_docs = [doc for _, doc in scored_docs[:RERANK_TOP_N]]
+        return reranked_docs
+    except Exception as e:
+        print(f"Error during reranking: {e}. Returning raw candidates.")
+        return candidates[:RERANK_TOP_N]
 
 
 def search_docs(query: str, active_docs: list = None, max_results: int = 8):
@@ -174,9 +258,10 @@ def search_docs(query: str, active_docs: list = None, max_results: int = 8):
 
 template = (
     "You are a strict, citation-focused assistant for a private knowledge base.\n"
+    "Available Documents in Knowledge Base:\n{available_docs}\n\n"
     "RULES:\n"
-    "1) Use ONLY the provided context to answer.\n"
-    "2) If the answer is not clearly contained in the context, say: "
+    "1) Use ONLY the provided context to answer questions about document content. If the user asks about the status of the database or what documents are uploaded, you may answer using the 'Available Documents in Knowledge Base' list above.\n"
+    "2) If the answer is not clearly contained in the context (or in the available documents list for database/file queries), say: "
     "\"I don't know based on the provided documents.\"\n"
     "3) Do NOT use outside knowledge, guessing, or web information.\n"
     "4) You MUST cite your sources using numbered references like [1], [2], etc. "
@@ -226,7 +311,8 @@ def get_sources_metadata(docs):
 rag_chain = (
     {
         "context": lambda q: format_docs(retrieve_docs(q)),
-        "question": RunnablePassthrough()
+        "question": RunnablePassthrough(),
+        "available_docs": lambda q: ", ".join(os.listdir("documents")) if os.path.exists("documents") else "None"
     }
     | prompt
     | llm
@@ -238,8 +324,25 @@ def chat(question: str, active_docs: list = None) -> dict:
     retrieved_docs = retrieve_docs(question, active_docs)
     context = format_docs(retrieved_docs)
     sources = get_sources_metadata(retrieved_docs)
+    
+    # Dynamically build the list of available/active files
+    if active_docs:
+        docs_list = [os.path.basename(f) for f in active_docs]
+    else:
+        docs_dir = "documents"
+        if os.path.exists(docs_dir):
+            docs_list = [f for f in os.listdir(docs_dir) if os.path.isfile(os.path.join(docs_dir, f))]
+        else:
+            docs_list = []
+    
+    available_docs_str = "\n".join(f"- {name}" for name in docs_list) if docs_list else "- None"
+
     chain = prompt | llm | StrOutputParser()
-    response = chain.invoke({"context": context, "question": question})
+    response = chain.invoke({
+        "context": context, 
+        "question": question,
+        "available_docs": available_docs_str
+    })
     return {"answer": response, "sources": sources}
 
 if __name__ == "__main__":
