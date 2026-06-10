@@ -94,15 +94,9 @@ print("Loading CrossEncoder reranker model (BAAI/bge-reranker-base)...")
 reranker = CrossEncoder("BAAI/bge-reranker-base", device=device)
 
 if device == "cpu":
-    print("Applying dynamic quantization to CrossEncoder for CPU speedup...")
-    try:
-        reranker.model = torch.quantization.quantize_dynamic(
-            reranker.model,
-            {torch.nn.Linear},
-            dtype=torch.qint8
-        )
-    except Exception as e:
-        print(f"Failed to quantize model: {e}")
+    print("Running CrossEncoder on CPU (without dynamic quantization to avoid RoBERTa tuple indexing bug).")
+    # Dynamic quantization of XLM-RoBERTa causes TypeError: list indices must be integers or slices, not tuple
+    # reranker.model = torch.quantization.quantize_dynamic(...)
 
 RERANK_TOP_N = 10
 
