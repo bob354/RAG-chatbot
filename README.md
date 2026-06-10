@@ -51,7 +51,7 @@ User Question
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/bob354/RAG-chatbot.git
 cd RAG-chatbot
 ```
 
@@ -180,8 +180,8 @@ In `chatbot.py`, you can adjust how documents are split. Currently utilizing `PD
 ```python
 text_splitter = RecursiveCharacterTextSplitter(
     separators=["\n\n", "\n", ". ", " ", ""],
-    chunk_size=1200,      # Max characters per chunk (increase for more context)
-    chunk_overlap=200,    # Overlap between chunks (helps preserve context at boundaries)
+    chunk_size=700,      # Max characters per chunk (depends on embedding models max sequence length)
+    chunk_overlap=100,    # Overlap between chunks (helps preserve context at boundaries)
     add_start_index=True,
     strip_whitespace=True
 )
