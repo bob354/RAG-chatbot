@@ -66,8 +66,8 @@ def get_vector_store():
 
     text_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n", "\n", ". ", " ", ""],
-        chunk_size=1200,
-        chunk_overlap=200,
+        chunk_size=700,
+        chunk_overlap=100,
         add_start_index=True,
         strip_whitespace=True
     )
