@@ -268,6 +268,57 @@ def search_docs(query: str, active_docs: list = None, max_results: int = 8):
 
     return results
 
+# ── Query Condensation ──
+HISTORY_MSG_MAX_CHARS = 600
+
+condense_template = (
+    "Given the following conversation history and a follow-up question, "
+    "rewrite the follow-up question into a standalone question that captures "
+    "the full intent. Output ONLY the rewritten question, nothing else.\n\n"
+    "Chat History:\n{chat_history}\n\n"
+    "Follow-up Question: {question}\n\n"
+    "Standalone Question:"
+)
+condense_prompt = ChatPromptTemplate.from_template(condense_template)
+
+def _truncate(text: str, max_chars: int = HISTORY_MSG_MAX_CHARS) -> str:
+    """Truncate text to max_chars, appending '...' if truncated."""
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars].rstrip() + "..."
+
+def _format_history(history: list) -> str:
+    """Format history list into a readable string, truncating each message."""
+    lines = []
+    for msg in history:
+        role = msg.get("role", "user").capitalize()
+        content = _truncate(msg.get("content", ""))
+        lines.append(f"{role}: {content}")
+    return "\n".join(lines)
+
+def condense_query(question: str, history: list) -> str:
+    """Rewrite follow-up question into standalone query using LLM.
+    Falls back to the original question on any failure."""
+    if not history:
+        return question
+    try:
+        formatted_history = _format_history(history)
+        chain = condense_prompt | llm | StrOutputParser()
+        rewritten = chain.invoke({
+            "chat_history": formatted_history,
+            "question": question
+        }).strip()
+        # Fallback: if rewritten is empty or suspiciously short
+        if not rewritten or len(rewritten) < 3:
+            print(f"[Condense] Fallback: rewritten query too short ('{rewritten}'). Using original.")
+            return question
+        print(f"[Condense] '{question}' → '{rewritten}'")
+        return rewritten
+    except Exception as e:
+        print(f"[Condense] Error: {e}. Using original query.")
+        return question
+
+# ── Main RAG Prompt ──
 template = (
     "You are a strict, citation-focused assistant for a private knowledge base.\n"
     "Available Documents in Knowledge Base:\n{available_docs}\n\n"
@@ -278,7 +329,9 @@ template = (
     "3) Do NOT use outside knowledge, guessing, or web information.\n"
     "4) You MUST cite your sources using numbered references like [1], [2], etc. "
     "that correspond to the source numbers given in the context.\n"
-    "5) Place the citation numbers inline right after the relevant sentence or claim.\n\n"
+    "5) Place the citation numbers inline right after the relevant sentence or claim.\n"
+    "6) If there is chat history, use it for conversational context but still ground your answer in the retrieved context.\n\n"
+    "{chat_history_section}"
     "Context:\n{context}\n\n"
     "Question: {question}"
 )
@@ -331,13 +384,24 @@ rag_chain = (
     | StrOutputParser()
 )
 
-def chat(question: str, active_docs: list = None) -> dict:
-    """Send a question to the RAG chain and return the answer with source citations."""
-    retrieved_docs = retrieve_docs(question, active_docs)
+def chat(question: str, active_docs: list = None, history: list = None) -> dict:
+    """Send a question to the RAG chain and return the answer with source citations.
+    
+    Args:
+        question: The user's current question.
+        active_docs: Optional list of active document file paths.
+        history: Optional list of chat history messages [{"role": ..., "content": ...}].
+                 Should be capped to last 5 turns (10 messages) by the caller.
+    """
+    # 1. Condense follow-up questions into standalone queries for retrieval
+    retrieval_query = condense_query(question, history) if history else question
+    
+    # 2. Retrieve using the rewritten (standalone) query
+    retrieved_docs = retrieve_docs(retrieval_query, active_docs)
     context = format_docs(retrieved_docs)
     sources = get_sources_metadata(retrieved_docs)
     
-    # Dynamically build the list of available/active files
+    # 3. Build available docs list
     if active_docs:
         docs_list = [os.path.basename(f) for f in active_docs]
     else:
@@ -346,14 +410,21 @@ def chat(question: str, active_docs: list = None) -> dict:
             docs_list = [f for f in os.listdir(docs_dir) if os.path.isfile(os.path.join(docs_dir, f))]
         else:
             docs_list = []
-    
     available_docs_str = "\n".join(f"- {name}" for name in docs_list) if docs_list else "- None"
 
+    # 4. Build chat history section for the final prompt
+    if history:
+        chat_history_section = "Chat History:\n" + _format_history(history) + "\n\n"
+    else:
+        chat_history_section = ""
+
+    # 5. Generate answer using the ORIGINAL question (not rewritten)
     chain = prompt | llm | StrOutputParser()
     response = chain.invoke({
-        "context": context, 
+        "context": context,
         "question": question,
-        "available_docs": available_docs_str
+        "available_docs": available_docs_str,
+        "chat_history_section": chat_history_section
     })
     return {"answer": response, "sources": sources}
 

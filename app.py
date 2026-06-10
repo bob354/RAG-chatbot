@@ -80,15 +80,16 @@ def api_chat():
     data = request.get_json()
     question = data.get("question", "").strip()
     active_docs = data.get("active_docs", None)
+    history = data.get("history", None)
 
     if not question:
         return jsonify({"error": "Empty question"}), 400
 
     try:
         start_time = time.time()
-        result = chat(question, active_docs)
+        result = chat(question, active_docs, history=history)
         elapsed_time = time.time() - start_time
-        print(f"Elapsed time (Sim Only): {elapsed_time:.2f} seconds")
+        print(f"Elapsed time: {elapsed_time:.2f} seconds")
         return jsonify({
             "answer": result["answer"],
             "sources": result["sources"],

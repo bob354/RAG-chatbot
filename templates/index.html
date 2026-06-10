@@ -1837,6 +1837,10 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // ── Conversational Memory ──
+        const MAX_HISTORY_MESSAGES = 10; // 5 turns (user+bot each)
+        let conversationHistory = [];
+
         async function sendMessage() {
             const question = questionInput.value.trim();
             if (!question) return;
@@ -1848,15 +1852,22 @@
             addMessage(question, 'user');
             addTypingIndicator();
 
+            // Push user message to history
+            conversationHistory.push({ role: 'user', content: question });
+
             try {
                 const active_docs = Array.from(selectedDocs);
                 
+                // Send capped history (last 5 turns) with the request
+                const historyToSend = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
+
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         question,
-                        active_docs
+                        active_docs,
+                        history: historyToSend.length > 1 ? historyToSend.slice(0, -1) : null
                     })
                 });
 
@@ -1867,10 +1878,17 @@
                     addMessage(`Error: ${data.error}`, 'bot', null, [], true);
                 } else {
                     addMessage(data.answer, 'bot', data.elapsed_seconds, data.sources || []);
+                    // Push bot response to history
+                    conversationHistory.push({ role: 'assistant', content: data.answer });
                 }
             } catch (err) {
                 removeTypingIndicator();
                 addMessage(`Connection error: ${err.message}`, 'bot', null, [], true);
+            }
+
+            // Cap history to prevent unbounded growth
+            if (conversationHistory.length > MAX_HISTORY_MESSAGES) {
+                conversationHistory = conversationHistory.slice(-MAX_HISTORY_MESSAGES);
             }
 
             sendBtn.disabled = false;
