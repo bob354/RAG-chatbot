@@ -218,7 +218,6 @@ llm = ChatGroq(
 | Slow first startup                     | Embedding and Reranking models are being downloaded. Subsequent runs will use the cache.     |
 | `No documents found` / empty responses | Upload `.pdf` files via the UI or place them in the `documents/` folder                      |
 | Port 5002 already in use               | Change the port in `app.py`: `app.run(port=5003)`                                            |
-| Out of memory                          | Use a smaller embedding model (e.g., `all-MiniLM-L6-v2`) or reduce `chunk_size`              |
 
 ---
 
