@@ -12,11 +12,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Data & Knowledge Base (Optional but recommended if PDFs are large)
+# Data & Knowledge Base
 documents/*.pdf
 # !documents/.gitkeep
 
-# Vector Database (If you decide to save the FAISS index locally later)
+# Vector Database 
 faiss_index/
 *.faiss
 *.pkl
