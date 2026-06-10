@@ -29,11 +29,12 @@ User Question
 **How it works:**
 
 1. PDFs in the `documents/` folder are loaded using `pdfplumber` and split into chunks. You can dynamically upload/delete PDFs via the Web UI, which will automatically rebuild the index.
-2. Chunks are embedded using a HuggingFace sentence-transformer model and stored in a **FAISS** vector store for semantic search. Simultaneously, a **BM25** index is built for keyword search.
-3. When a user asks a question, documents are retrieved using **Hybrid Search** (Semantic + Keyword) to capture both contextual meaning and exact phrasing.
-4. The combined candidates are then reranked using a Cross-Encoder model (`BAAI/bge-reranker-base`), selecting the top, most relevant chunks.
-5. The retrieved context + question are sent to the Groq-hosted LLaMA 3.1 model to generate a strict, citation-focused answer.
-6. The chatbot only answers based on the provided documents — no hallucination.
+2. Chunks are embedded using a HuggingFace sentence-transformer model and stored in a **FAISS** vector store. The model dynamically utilizes **CUDA (GPU)** if available.
+3. Simultaneously, a **BM25** index is built for keyword search.
+4. When a user asks a follow-up question, the system uses **Query Condensation** with the conversational history to rewrite it into a standalone query.
+5. Documents are then retrieved using **Hybrid Search** (Semantic + Keyword) to capture both contextual meaning and exact phrasing.
+6. Candidates are reranked using a Cross-Encoder model (`BAAI/bge-reranker-base`). The model uses **dynamic quantization** to speed up inference if running on CPU.
+7. The top retrieved context, chat history, and question are sent to the Groq-hosted LLaMA 3.1 model to generate a strict, citation-focused answer.
 
 ---
 
@@ -132,7 +133,7 @@ Send a POST request to `/api/chat`:
 ```bash
 curl -X POST http://localhost:5002/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"question": "What is the main topic of the document?"}'
+  -d '{"question": "What is the main topic of the document?", "history": [{"role": "user", "content": "Hello!"}]}'
 ```
 
 #### Source Search Endpoint
@@ -192,10 +193,10 @@ The pipeline uses a combination of FAISS (semantic) and BM25 (keyword) before re
 
 ```python
 # Number of document chunks to retrieve per search strategy (BM25 and Semantic)
-search_kwargs={"k": 15} 
+search_kwargs={"k": 20} 
 
 # Number of top documents to keep after CrossEncoder reranking
-RERANK_TOP_N = 5
+RERANK_TOP_N = 10
 ```
 
 ### LLM Temperature
